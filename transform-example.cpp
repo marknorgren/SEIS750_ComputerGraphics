@@ -1,6 +1,6 @@
 /*
- example implementation of the transformation in-class exercise
- **/
+example implementation of the transformation in-class exercise
+**/
 
 #include <GL/Angel.h>
 #include <math.h>
@@ -56,7 +56,7 @@ void generateCube(){
 	cubeVerts[3] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
 	cubeVerts[4] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
 	cubeVerts[5] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	
+
 
 	for(int i=6; i<12; i++){
 		cubeColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //back
@@ -77,7 +77,7 @@ void generateCube(){
 	cubeVerts[15] = vec4(1.0f, -1.0f, -1.0f, 1.0);
 	cubeVerts[16] = vec4(1.0f, 1.0f, -1.0f, 1.0);
 	cubeVerts[17] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	
+
 	for(int i=18; i<24; i++){
 		cubeColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //right
 	}
@@ -87,7 +87,7 @@ void generateCube(){
 	cubeVerts[21] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
 	cubeVerts[22] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
 	cubeVerts[23] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-	
+
 	for(int i=24; i<30; i++){
 		cubeColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
 	}
@@ -97,7 +97,7 @@ void generateCube(){
 	cubeVerts[27] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
 	cubeVerts[28] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
 	cubeVerts[29] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	
+
 	for(int i=30; i<36; i++){
 		cubeColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
 	}
@@ -162,36 +162,36 @@ void special(int key, int x, int y){
 		tx -= 0.1;
 	else if(key == GLUT_KEY_RIGHT)
 		tx += 0.1;
-	
+
 	//don't forget to request a new frame since parameters have changed
 	glutPostRedisplay();
 }
 
 void init() {
 
-  /*select clearing (background) color*/
-  glClearColor(0.0, 0.0, 0.0, 0.0);
+	/*select clearing (background) color*/
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 
-  //populate our arrays
-  generateCube();
-  generateCar();
-  //set up transformation defaults
-  //start with no translation or rotation
-  tx = ty = tz = rx = ry = rz = 0;
+	//populate our arrays
+	generateCube();
+	generateCar();
+	//set up transformation defaults
+	//start with no translation or rotation
+	tx = ty = tz = rx = ry = rz = 0;
 
-   // Load shaders and use the resulting shader program
-    GLuint program = InitShader( "vshader-transform.glsl", "fshader-transform.glsl" );
-    glUseProgram( program );
+	// Load shaders and use the resulting shader program
+	GLuint program = InitShader( "vshader-transform.glsl", "fshader-transform.glsl" );
+	glUseProgram( program );
 
 	// Create a vertex array object
-    glGenVertexArrays( 1, &vao[0] );
+	glGenVertexArrays( 1, &vao[0] );
 
-    // Create and initialize any buffer objects
+	// Create and initialize any buffer objects
 	glBindVertexArray( vao[0] );
 	glGenBuffers( 2, &vbo[0] );
-    glBindBuffer( GL_ARRAY_BUFFER, vbo[0] );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[0] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
 	vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -205,16 +205,16 @@ void init() {
 
 
 	/*********************************************************
-	 * CAR
-	 *
-	 *********************************************************/
+	* CAR
+	*
+	*********************************************************/
 	// Create and initialize **CAR** buffer objects
 	// Create a vertex array object
-    glGenVertexArrays( 1, &vao[1] );
+	glGenVertexArrays( 1, &vao[1] );
 	glBindVertexArray( vao[1] );
 	glGenBuffers( 2, &vbo[2] );
-    glBindBuffer( GL_ARRAY_BUFFER, vbo[2] );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[2] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
 	vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -231,16 +231,16 @@ void init() {
 	model_view = glGetUniformLocation(program, "model_view");
 	projection = glGetUniformLocation(program, "projection");
 
-  //Only draw the things in the front layer
+	//Only draw the things in the front layer
 	glEnable(GL_DEPTH_TEST);
 }
 
 void display(void)
 {
-  /*clear all pixels*/
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	/*clear all pixels*/
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 
 	mv = mv * Translate(-4,-4,0);
 	mv = mv * Translate(tx, ty, tz);
@@ -250,19 +250,19 @@ void display(void)
 	mv = mv * RotateZ(rz);
 
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	
+
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-    
+
 	glBindVertexArray( vao[0] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
 
-    /* second cube */
+	/* second cube */
 	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	mv = mv * Translate(4, 4, 0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	
+
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-    
+
 	glBindVertexArray( vao[0] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
 
@@ -270,16 +270,16 @@ void display(void)
 	/* draw car */
 	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	
+
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-    
+
 	glBindVertexArray( vao[1] );
 	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the cube
 
 
-    glFlush();
-  /*start processing buffered OpenGL routines*/
-  glutSwapBuffers();
+	glFlush();
+	/*start processing buffered OpenGL routines*/
+	glutSwapBuffers();
 }
 
 
@@ -294,24 +294,24 @@ void reshape(int width, int height){
 
 int main(int argc, char **argv)
 {
-  /*set up window for display*/
-  glutInit(&argc, argv);
-  glutInitWindowPosition(0, 0); 
-  glutInitWindowSize(ww, wh);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-  glutCreateWindow("Transformations Exercise");  
+	/*set up window for display*/
+	glutInit(&argc, argv);
+	glutInitWindowPosition(0, 0); 
+	glutInitWindowSize(ww, wh);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutCreateWindow("Transformations Exercise");  
 
-  glewExperimental = GL_TRUE;
+	glewExperimental = GL_TRUE;
 
 	glewInit();
-  init();
+	init();
 
-  glutDisplayFunc(display);
-  glutKeyboardFunc(Keyboard);
-  glutReshapeFunc(reshape);
-  glutSpecialFunc(special);
-  //glutIdleFunc(idle);
+	glutDisplayFunc(display);
+	glutKeyboardFunc(Keyboard);
+	glutReshapeFunc(reshape);
+	glutSpecialFunc(special);
+	//glutIdleFunc(idle);
 
-  glutMainLoop();
-  return 0;
+	glutMainLoop();
+	return 0;
 }
