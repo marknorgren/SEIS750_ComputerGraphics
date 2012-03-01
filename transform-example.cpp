@@ -30,11 +30,11 @@ GLuint projection;
 GLuint vPosition;
 GLuint vColor;
 
-vec4 carVerts[6];
-vec4 carColors[6];
+vec4 carVerts[36];
+vec4 carColors[36];
 void generateCar() {
 	for(int i=0; i<6; i++){
-		carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //front
+		carColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //front
 	}
 	carVerts[0] = vec4(1.0f, -1.0f, 1.0f, 1.0);
 	carVerts[1] = vec4(1.0f, 1.0f, 1.0f, 1.0);
@@ -42,6 +42,56 @@ void generateCar() {
 	carVerts[3] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
 	carVerts[4] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
 	carVerts[5] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+
+	for(int i=6; i<12; i++){
+		carColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //back
+	}
+	carVerts[6] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+	carVerts[7] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
+	carVerts[8] = vec4(1.0f, 1.0f, -1.0f, 1.0);
+	carVerts[9] = vec4(1.0f, 1.0f, -1.0f, 1.0);
+	carVerts[10] = vec4(1.0f, -1.0f, -1.0f, 1.0);
+	carVerts[11] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+
+	for(int i=12; i<18; i++){
+		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //right
+	}
+	carVerts[12] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	carVerts[13] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[14] = vec4(1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[15] = vec4(1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[16] = vec4(1.0f, 1.0f, -5.0f, 1.0);
+	carVerts[17] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+
+	for(int i=18; i<24; i++){
+		carColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //left
+	}
+	carVerts[18] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
+	carVerts[19] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[20] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[21] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[22] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
+	carVerts[23] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
+
+	for(int i=24; i<30; i++){
+		carColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
+	}
+	carVerts[24] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	carVerts[25] = vec4(1.0f, 1.0f, -5.0f, 1.0);
+	carVerts[26] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
+	carVerts[27] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
+	carVerts[28] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
+	carVerts[29] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+
+	for(int i=30; i<36; i++){
+		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
+	}
+	carVerts[30] = vec4(1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[31] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[32] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[33] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[34] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[35] = vec4(1.0f, -1.0f, -5.0f, 1.0);
 }
 
 vec4 cubeVerts[36];
@@ -185,7 +235,7 @@ void init() {
 	glUseProgram( program );
 
 	// Create a vertex array object
-	glGenVertexArrays( 1, &vao[0] );
+	glGenVertexArrays( 2, vao );
 
 	// Create and initialize any buffer objects
 	glBindVertexArray( vao[0] );
@@ -210,7 +260,7 @@ void init() {
 	*********************************************************/
 	// Create and initialize **CAR** buffer objects
 	// Create a vertex array object
-	glGenVertexArrays( 1, &vao[1] );
+	//glGenVertexArrays( 1, &vao[1] );
 	glBindVertexArray( vao[1] );
 	glGenBuffers( 2, &vbo[2] );
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[2] );
@@ -274,8 +324,25 @@ void display(void)
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
 	glBindVertexArray( vao[1] );
-	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the cube
+	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 
+	/* draw a wheel */
+	glColor3f(0.0f, 1.0f, 0.0f); // black
+
+	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	int i;
+	int sections = 20; //number of triangles to use to estimate a circle
+	// (a higher number yields a more perfect circle)
+	GLfloat radius = 0.8f; //radius
+	GLfloat twoPi = 2.0f * 3.14159f;
+
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex2f(0.0, 0.0); // origin
+	for(i = 0; i <= sections;i++) { // make $section number of circles
+		glVertex2f(radius * cos(i *  twoPi / sections), 
+			radius* sin(i * twoPi / sections));
+	}
+	glEnd();
 
 	glFlush();
 	/*start processing buffered OpenGL routines*/
