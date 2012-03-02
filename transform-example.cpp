@@ -18,8 +18,8 @@ GLfloat rx, ry, rz;
 //need some arrays to store cube attributes
 //GLuint vao[1];
 //GLuint vbo[2];
-GLuint vao[2];
-GLuint vbo[4];
+GLuint vao[3];
+GLuint vbo[6];
 
 //our modelview and perspective matrices
 mat4 mv, p;
@@ -159,8 +159,6 @@ void generateCube(){
 	cubeVerts[35] = vec4(1.0f, -1.0f, -1.0f, 1.0);
 }
 
-
-
 void Keyboard(unsigned char key, int x, int y) {
 	/*exit when the escape key is pressed*/
 	if (key == 27)
@@ -217,13 +215,80 @@ void special(int key, int x, int y){
 	glutPostRedisplay();
 }
 
+
+/*****************************************************/
+/* HEAD OBJECT */
+/*****************************************************/
+#define M_PI 3.14159265358979323846
+
+int spherevertcount;
+
+vec4* sphere_verts;
+//This could also be done as separate triangle strips, but I've chosen to make them just triangles so I don't have to execute multiple glDrawArrays() commands
+int generateSphere(float radius, int subdiv){
+	float step = (360.0/subdiv)*(M_PI/180.0);
+
+	int totalverts = ceil(subdiv/2.0)*subdiv * 6;
+
+	if(sphere_verts){
+		delete[] sphere_verts;
+	}
+	sphere_verts = new vec4[totalverts];
+
+	int k = 0;
+	for(float i = -M_PI/2; i<=M_PI/2; i+=step){
+		for(float j = -M_PI; j<=M_PI; j+=step){
+			//triangle 1
+			sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+			k++;
+
+			sphere_verts[k]=   vec4(radius*sin(j)*cos(i+step), radius*cos(j)*cos(i+step), radius*sin(i+step), 1.0);
+			k++;
+
+			sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+			k++;
+
+			//triangle 2
+			sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+			k++;
+
+			sphere_verts[k]=   vec4(radius*sin(j+step)*cos(i), radius*cos(j+step)*cos(i), radius*sin(i), 1.0);
+			k++;
+
+			sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+			k++;
+		}
+	}
+	return totalverts;
+}
+
+vec4* circle_verts;
+int generateCircle(float radius, int subdiv){
+	float step = (360.0/subdiv)*(M_PI/180.0);
+
+	int totalverts = ceil(subdiv/2.0)*subdiv * 6;
+
+	if(circle_verts){
+		delete[] circle_verts;
+	}
+	circle_verts = new vec4[totalverts];
+
+
+
+	return totalverts;
+}
+
+
+
 void init() {
 
 	/*select clearing (background) color*/
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 
-
 	//populate our arrays
+	//first parameter is how big you want the sphere to be
+	//second parameter is how many subdivisions you want 
+	spherevertcount = generateSphere(0.8, 30);
 	generateCube();
 	generateCar();
 	//set up transformation defaults
@@ -248,11 +313,10 @@ void init() {
 
 	//and now our colors for each vertex
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[1] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(carColors), carColors, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeColors), cubeColors, GL_STATIC_DRAW );
 	vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
 	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
 
 	/*********************************************************
 	* CAR
@@ -276,10 +340,20 @@ void init() {
 	glEnableVertexAttribArray(vColor);
 	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-
 	//grab pointers for our modelview and perspecive uniform matrices
 	model_view = glGetUniformLocation(program, "model_view");
 	projection = glGetUniformLocation(program, "projection");
+
+	/*********************************************************
+	/** HEAD 
+	/*********************************************************/
+	glBindVertexArray( vao[2] );
+	glGenBuffers( 2, &vbo[4] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[4] );
+	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
+	vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//Only draw the things in the front layer
 	glEnable(GL_DEPTH_TEST);
@@ -319,6 +393,10 @@ void display(void)
 
 	/* draw car */
 	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	mv = mv * Translate(tx, ty, tz);
+	mv = mv *RotateX(rx);
+	mv = mv * RotateY(ry);
+	mv = mv * RotateZ(rz);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
@@ -326,23 +404,13 @@ void display(void)
 	glBindVertexArray( vao[1] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 
-	/* draw a wheel */
-	glColor3f(0.0f, 1.0f, 0.0f); // black
+	/* draw a head */
+	//mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	mv = mv * Translate(0, 1.5, 0);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+	glBindVertexArray( vao[2] );
+	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
-	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	int i;
-	int sections = 20; //number of triangles to use to estimate a circle
-	// (a higher number yields a more perfect circle)
-	GLfloat radius = 0.8f; //radius
-	GLfloat twoPi = 2.0f * 3.14159f;
-
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex2f(0.0, 0.0); // origin
-	for(i = 0; i <= sections;i++) { // make $section number of circles
-		glVertex2f(radius * cos(i *  twoPi / sections), 
-			radius* sin(i * twoPi / sections));
-	}
-	glEnd();
 
 	glFlush();
 	/*start processing buffered OpenGL routines*/
