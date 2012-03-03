@@ -5,6 +5,7 @@ example implementation of the transformation in-class exercise
 #include <GL/Angel.h>
 #include <GL/CheckError.h>
 #include <math.h>
+#include "MRKCheckError.h"
 #pragma comment(lib, "glew32.lib")
 
 //store window width and height
@@ -15,6 +16,8 @@ int ww=1200, wh=800;
 //these are the extra variables needed for the exercise
 GLfloat tx, ty, tz;
 GLfloat rx, ry, rz;
+
+
 
 //our modelview and perspective matrices
 mat4 mv, p;
@@ -32,6 +35,7 @@ GLuint projection;
 GLuint vPosition;
 GLuint vColor;
 
+float carHeading = 0.0f;
 /** CAR OBJECT **/
 #define CAR_WIDTH 2.0f
 #define CAR_HEIGHT 2.0f
@@ -46,6 +50,7 @@ enum VAO_OBJECTS
 {
 	CUBE,
 	CAR,
+	WHEEL,
 	HEAD,
 	EYE,
 	STAGE,
@@ -58,6 +63,8 @@ enum VBO_OBJECTS
 	CUBE_COLORS,
 	CAR_VERTS,
 	CAR_COLORS,
+	WHEEL_VERTS,
+	WHEEL_COLORS,
 	HEAD_VERTS,
 	HEAD_COLORS,
 	EYE_VERTS,
@@ -120,7 +127,7 @@ void generateCar() {
 	carVerts[14] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
 	carVerts[15] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
 	carVerts[16] = vec4(1.0f, 1.0f,		-(CAR_LENGTH),	1.0);
-	carVerts[17] = vec4(1.0f, 1.0f,		-(CAR_LENGTH),	1.0);
+	carVerts[17] = vec4(1.0f, 1.0f,		0.0f,			1.0);
 
 	for(int i=18; i<24; i++){
 		carColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //left
@@ -266,11 +273,13 @@ void Keyboard(unsigned char key, int x, int y) {
 		if(rx < 0)
 			rx += 360;
 	}
+	/***** TURN CAR *****/
 	else if(key == 'o'){
 		ry += 5;
 		if(ry > 360)
 			ry -= 360;
 	}
+	/***** TURN CAR *****/ 
 	else if(key == 'k'){
 		ry -= 5;
 		if(ry < 0)
@@ -291,376 +300,410 @@ void Keyboard(unsigned char key, int x, int y) {
 
 void special(int key, int x, int y){
 	if(key == GLUT_KEY_UP)
-		ty += 0.1;
+	{
+		if (tx > -((STAGE_WIDTH-5)/2) && tx < ((STAGE_WIDTH-5)/2))
+		{
+			tz += 3.0f * cos(carHeading);
+		//if (tx > STAGE_WIDTH/2)
+			tx += 3.0f * sin(carHeading);
+		}
+		printf("tz: %f, tx: %f\n", tz, tx);
+	}
 	else if(key == GLUT_KEY_DOWN)
-		ty -= 0.1;
+	{
+		tz -= 3.0f * cos(carHeading);
+		tx -= 3.0f * sin(carHeading);
+	}
+	/***** TURN CAR *****/
 	else if(key == GLUT_KEY_LEFT)
-		tx -= 0.1;
+	{
+		
+		ry += 5;
+		carHeading = (ry*M_PI)/180;
+		if(ry > 360)
+		{
+			ry -= 360;
+		}
+	}
+	/***** TURN CAR *****/ 
 	else if(key == GLUT_KEY_RIGHT)
-		tx += 0.1;
-
-	//don't forget to request a new frame since parameters have changed
+	{
+		ry -= 5;
+		carHeading = (ry*M_PI)/180;
+		if(ry < 0)
+		{
+			ry += 360;
+		}
+	}
 	glutPostRedisplay();
 }
 
+	/*****************************************************/
+	/* HEAD OBJECT */
+	/*****************************************************/
 
-/*****************************************************/
-/* HEAD OBJECT */
-/*****************************************************/
-#define M_PI 3.14159265358979323846
 
-int spherevertcount;
-vec4* sphere_verts;
-vec4* sphere_colors;
-int generateSphere(float radius, int subdiv, vec4 color){
-	float step = (360.0/subdiv)*(M_PI/180.0);
+	int spherevertcount;
+	vec4* sphere_verts;
+	vec4* sphere_colors;
+	int generateSphere(float radius, int subdiv, vec4 color){
+		float step = (360.0/subdiv)*(M_PI/180.0);
 
-	int totalverts = ceil(subdiv/2.0)*subdiv * 6;
+		int totalverts = ceil(subdiv/2.0)*subdiv * 6;
 
-	if(sphere_verts){
-		delete[] sphere_verts;
-	}
-	sphere_verts = new vec4[totalverts];
-	sphere_colors = new vec4[totalverts];
-	for(int i=0; i<totalverts; i++){
-		sphere_colors[i] = color; //white
-	}
-
-	int k = 0;
-	for(float i = -M_PI/2; i<=M_PI/2; i+=step){
-		for(float j = -M_PI; j<=M_PI; j+=step){
-			//triangle 1
-			sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
-			k++;
-
-			sphere_verts[k]=   vec4(radius*sin(j)*cos(i+step), radius*cos(j)*cos(i+step), radius*sin(i+step), 1.0);
-			k++;
-
-			sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
-			k++;
-
-			//triangle 2
-			sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
-			k++;
-
-			sphere_verts[k]=   vec4(radius*sin(j+step)*cos(i), radius*cos(j+step)*cos(i), radius*sin(i), 1.0);
-			k++;
-
-			sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
-			k++;
+		if(sphere_verts){
+			delete[] sphere_verts;
 		}
+		sphere_verts = new vec4[totalverts];
+		sphere_colors = new vec4[totalverts];
+		for(int i=0; i<totalverts; i++){
+			sphere_colors[i] = color; //white
+		}
+
+		int k = 0;
+		for(float i = -M_PI/2; i<=M_PI/2; i+=step){
+			for(float j = -M_PI; j<=M_PI; j+=step){
+				//triangle 1
+				sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+				k++;
+
+				sphere_verts[k]=   vec4(radius*sin(j)*cos(i+step), radius*cos(j)*cos(i+step), radius*sin(i+step), 1.0);
+				k++;
+
+				sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+				k++;
+
+				//triangle 2
+				sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+				k++;
+
+				sphere_verts[k]=   vec4(radius*sin(j+step)*cos(i), radius*cos(j+step)*cos(i), radius*sin(i), 1.0);
+				k++;
+
+				sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+				k++;
+			}
+		}
+		return totalverts;
 	}
-	return totalverts;
-}
 
-int circlevertcount;
-vec4* circle_verts;
-vec4* circle_colors;
-int generateCircle(float radius, int subdiv, vec4 color){
+	int circlevertcount;
+	vec4* circle_verts;
+	vec4* circle_colors;
+	int generateCircle(float radius, int subdiv, vec4 color){
+		float step = (360.0/subdiv)*(M_PI/180.0);
+		printf("step: %f\n", step);
+		int totalverts = ceil(subdiv/2.0)*subdiv ;
+		printf("totalVerts: %d\n", totalverts);
+		if(circle_verts){
+			delete[] circle_verts;
+		}
+		circle_verts = new vec4[totalverts];
+		circle_colors = new vec4[totalverts];
+		for(int i=0; i<totalverts; i++){
+			circle_colors[i] = color; //white
+		}
 
-	float step = (360.0/subdiv)*(M_PI/180.0);
+		float a=0, x=0.0,y=0.0,z=0.0;
+		int vert_count = 1;
+		circle_verts[0] = vec4(0.0f,0.0f,0.0f,0.0);
+		for (a=0; a<2*M_PI; a+=step) {
+			x = cos(a)*radius;
+			y = sin(a)*radius;
+			z = 0.0f;
+			circle_verts[vert_count] = vec4(x, y, z, 0.0);
+			vert_count++;
+			printf("x: %f, y: %f, z: %f\n", x,y,z);
 
-	int totalverts = ceil(subdiv/2.0)*subdiv * 6;
+		}
+		printf("x: %f, y: %f, z: %f\n", x,y,z);
 
-	if(circle_verts){
-		delete[] circle_verts;
+
+		return totalverts;
 	}
-	circle_verts = new vec4[totalverts];
-	circle_colors = new vec4[totalverts];
-	for(int i=0; i<totalverts; i++){
-		circle_colors[i] = color; //white
+
+
+
+	void init() {
+		/*select clearing (background) color*/
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+
+		//populate our arrays
+		generateStage();
+
+		generateCube();
+		generateCar();
+		//set up transformation defaults
+		//start with no translation or rotation
+		tx = ty = tz = rx = ry = rz = 0;
+
+		// Load shaders and use the resulting shader program
+		GLuint program = InitShader( "vshader-transform.glsl", "fshader-transform.glsl" );
+		glUseProgram( program );
+
+		// Create a vertex array object
+		glGenVertexArrays( NUMBER_OF_VAO_OBJECTS, vao );
+
+		// CUBE
+		// Create and initialize any buffer objects
+		glBindVertexArray( vao[CUBE] );
+		glGenBuffers( 2, &vbo[CUBE_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(cubeColors), cubeColors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		/*********************************************************
+		* CAR
+		*
+		*********************************************************/
+		// Create and initialize **CAR** buffer objects
+		// Create a vertex array object
+		//glGenVertexArrays( 1, &vao[1] );
+		glBindVertexArray( vao[CAR] );
+		glGenBuffers( 2, &vbo[CAR_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(carColors), carColors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//grab pointers for our modelview and perspecive uniform matrices
+		model_view = glGetUniformLocation(program, "model_view");
+		projection = glGetUniformLocation(program, "projection");
+
+		/*********************************************************
+		/** HEAD 
+		/*********************************************************/
+		// generate vertices for head 
+		spherevertcount = generateSphere(0.8, 30, vec4(1.0, 0.5, 0.5, 1.0));
+
+		glBindVertexArray( vao[HEAD] );
+		glGenBuffers( 2, &vbo[HEAD_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER,spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		/*********************************************************
+		/** EYE 
+		/*********************************************************/
+		// generate vertices for head 
+		spherevertcount = generateSphere(0.1, 30, vec4(0.0, 0.0, 1.0, 1.0));
+
+		glBindVertexArray( vao[EYE] );
+		glGenBuffers( 2, &vbo[EYE_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		/*********************************************************
+		/** WHEEL 
+		/*********************************************************/
+		// generate vertices for head 
+		circlevertcount = generateCircle(1.4, 30, vec4(0.0, 1.0, 0.0, 1.0));
+
+		glBindVertexArray( vao[WHEEL] );
+		glGenBuffers( 2, &vbo[WHEEL_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[WHEEL_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, circlevertcount*sizeof(vec4), circle_verts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[WHEEL_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, circlevertcount*sizeof(vec4), circle_colors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		/*********************************************************
+		* STAGE
+		*
+		*********************************************************/
+		// Create a vertex array object
+
+		glBindVertexArray( vao[STAGE] );
+		glGenBuffers( 2, &vbo[STAGE_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(stageVerts), stageVerts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(stageColors), stageColors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//grab pointers for our modelview and perspecive uniform matrices
+		model_view = glGetUniformLocation(program, "model_view");
+		projection = glGetUniformLocation(program, "projection");
+
+		//Only draw the things in the front layer
+		glEnable(GL_DEPTH_TEST);
 	}
 
-	int i;
-	int sections = subdiv; //number of triangles to use to estimate a circle
-	GLfloat twoPi = 2.0f * M_PI;
+	void display(void)
+	{
+		/*clear all pixels*/
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		mat4 cameraMatrix;
+		mat4 wholeCarMatrix;
+		mat4 headMatrix;
+		mat4 frontWheelsMatrix;
+		mat4 allWheelsMatrix;
 
-	
-	
-	for(i = 0; i <= sections;i++) 
-	{	
-		// make $section number of circles
-		circle_verts[i]=   vec4(radius * cos(i *  twoPi / sections), radius* sin(i * twoPi / sections), 0.0f);
+		cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		cameraMatrix = cameraMatrix * RotateY(cameraRotation);
+		allWheelsMatrix =LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		wholeCarMatrix = cameraMatrix  * RotateX(rx);
+		wholeCarMatrix = cameraMatrix  * RotateY(ry);
+		wholeCarMatrix = cameraMatrix  * RotateZ(rz);
+		wholeCarMatrix = cameraMatrix * Translate(tx, ty, tz);
+
+		mv = cameraMatrix * mv;
+		mv = mv * Translate(-2,0,0);
+		mv = mv * Translate(tx, ty, tz);
+
+		mv = mv * RotateX(rx);
+		mv = mv * RotateY(ry);
+		mv = mv * RotateZ(rz);
+
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+		glBindVertexArray( vao[CUBE] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
+
+
+		/* draw car */
+		mv = cameraMatrix;
+		wholeCarMatrix = mv;
+		wholeCarMatrix = wholeCarMatrix * Translate(tx, ty, tz);
+		wholeCarMatrix = wholeCarMatrix * RotateX(rx);
+		wholeCarMatrix = wholeCarMatrix * RotateY(ry);
+		wholeCarMatrix = wholeCarMatrix * RotateZ(rz);
+		// move the car up for the wheels
+		wholeCarMatrix = wholeCarMatrix * Translate(0, 2.0, 0);
+
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+
+		glBindVertexArray( vao[CAR] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+
+		/* draw a head */
+		wholeCarMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
+		glBindVertexArray( vao[HEAD] );
+		glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
+
+		/* draw eyes */
+		mat4 eyeMat;
+		eyeMat = wholeCarMatrix * Translate(-.2, .3, .8);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
+		glBindVertexArray( vao[EYE] );
+		glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
+
+		eyeMat = wholeCarMatrix;
+		eyeMat = wholeCarMatrix * Translate(.2, .3, .8);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
+		glBindVertexArray( vao[EYE] );
+		glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
+
+		/* draw a wheel */
+		allWheelsMatrix = Translate(-3, 2.5, -1.0);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, allWheelsMatrix);
+		glBindVertexArray( vao[WHEEL] );
+		glDrawArrays( GL_TRIANGLES, 0, circlevertcount );    // draw the sphere
+
+		/* draw stage */
+		mv = cameraMatrix;
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+		glBindVertexArray( vao[STAGE] );
+		glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the sphere
+
+		mv = cameraMatrix;
+
+		/* camera position */
+		//cameraRotation = 
+		mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		p = Perspective(90.0, (float)ww/(float)wh, 1.0, 200.0);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+
+		glFlush();
+		MRKCheckError();
+		/*start processing buffered OpenGL routines*/
+		glutSwapBuffers();
 	}
-	return totalverts;
-}
 
 
+	void reshape(int width, int height){
+		ww= width;
+		wh = height;
+		//field of view angle, aspect ratio, closest distance from camera to object, largest distanec from camera to object
+		p = Perspective(90.0, (float)width/(float)height, 1.0, 150.0);
 
-void init() {
-	/*select clearing (background) color*/
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+		glViewport( 0, 0, width, height );
+	}
 
-	//populate our arrays
-	generateStage();
-	
-	generateCube();
-	generateCar();
-	//set up transformation defaults
-	//start with no translation or rotation
-	tx = ty = tz = rx = ry = rz = 0;
+	int main(int argc, char **argv)
+	{
+		/*set up window for display*/
+		glutInit(&argc, argv);
+		glutInitWindowPosition(0, 0); 
+		glutInitWindowSize(ww, wh);
+		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+		glutCreateWindow("Transformations Exercise");  
 
-	// Load shaders and use the resulting shader program
-	GLuint program = InitShader( "vshader-transform.glsl", "fshader-transform.glsl" );
-	glUseProgram( program );
+		glewExperimental = GL_TRUE;
 
-	// Create a vertex array object
-	glGenVertexArrays( NUMBER_OF_VAO_OBJECTS, vao );
+		glewInit();
+		init();
 
-	// CUBE
-	// Create and initialize any buffer objects
-	glBindVertexArray( vao[CUBE] );
-	glGenBuffers( 2, &vbo[CUBE_VERTS] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_VERTS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
-	vPosition = glGetAttribLocation(program, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glutDisplayFunc(display);
+		glutKeyboardFunc(Keyboard);
+		glutReshapeFunc(reshape);
+		glutSpecialFunc(special);
+		//glutIdleFunc(idle);
 
-	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeColors), cubeColors, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	/*********************************************************
-	* CAR
-	*
-	*********************************************************/
-	// Create and initialize **CAR** buffer objects
-	// Create a vertex array object
-	//glGenVertexArrays( 1, &vao[1] );
-	glBindVertexArray( vao[CAR] );
-	glGenBuffers( 2, &vbo[CAR_VERTS] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_VERTS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
-	vPosition = glGetAttribLocation(program, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(carColors), carColors, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//grab pointers for our modelview and perspecive uniform matrices
-	model_view = glGetUniformLocation(program, "model_view");
-	projection = glGetUniformLocation(program, "projection");
-
-	/*********************************************************
-	/** HEAD 
-	/*********************************************************/
-	// generate vertices for head 
-	spherevertcount = generateSphere(0.8, 30, vec4(1.0, 0.5, 0.5, 1.0));
-
-	glBindVertexArray( vao[HEAD] );
-	glGenBuffers( 2, &vbo[HEAD_VERTS] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_VERTS] );
-	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
-	vPosition = glGetAttribLocation(program, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER,spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	/*********************************************************
-	/** EYE 
-	/*********************************************************/
-	// generate vertices for head 
-	spherevertcount = generateSphere(0.1, 30, vec4(1.0, 1.0, 1.0, 1.0));
-
-	glBindVertexArray( vao[EYE] );
-	glGenBuffers( 2, &vbo[EYE_VERTS] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_VERTS] );
-	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
-	vPosition = glGetAttribLocation(program, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	/*********************************************************
-	/** WHEEL 
-	/*********************************************************/
-	// generate vertices for head 
-	circlevertcount = generateCircle(0.1, 30, vec4(0.0, 0.0, 1.0, 1.0));
-
-	glBindVertexArray( vao[EYE] );
-	glGenBuffers( 2, &vbo[EYE_VERTS] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_VERTS] );
-	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
-	vPosition = glGetAttribLocation(program, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(sphere_colors), sphere_colors, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	/*********************************************************
-	* STAGE
-	*
-	*********************************************************/
-	// Create a vertex array object
-
-	glBindVertexArray( vao[STAGE] );
-	glGenBuffers( 2, &vbo[STAGE_VERTS] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_VERTS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(stageVerts), stageVerts, GL_STATIC_DRAW);
-	vPosition = glGetAttribLocation(program, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(stageColors), stageColors, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//grab pointers for our modelview and perspecive uniform matrices
-	model_view = glGetUniformLocation(program, "model_view");
-	projection = glGetUniformLocation(program, "projection");
-
-	//Only draw the things in the front layer
-	glEnable(GL_DEPTH_TEST);
-}
-
-void display(void)
-{
-	/*clear all pixels*/
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	mat4 cameraMatrix;
-	mat4 wholeCarMatrix;
-	mat4 headMatrix;
-	mat4 frontWheelsMatrix;
-	mat4 allWheelsMatrix;
-
-	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	cameraMatrix = cameraMatrix * RotateY(cameraRotation);
-
-	mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	wholeCarMatrix = cameraMatrix  * RotateX(rx);
-	wholeCarMatrix = cameraMatrix  * RotateY(ry);
-	wholeCarMatrix = cameraMatrix  * RotateZ(rz);
-	wholeCarMatrix = cameraMatrix * Translate(tx, ty, tz);
-
-	mv = cameraMatrix * mv;
-	mv = mv * Translate(-2,0,0);
-	mv = mv * Translate(tx, ty, tz);
-
-	mv = mv * RotateX(rx);
-	mv = mv * RotateY(ry);
-	mv = mv * RotateZ(rz);
-
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-	glBindVertexArray( vao[CUBE] );
-	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
-
-
-	/* draw car */
-	mv = cameraMatrix;
-	wholeCarMatrix = mv;
-	wholeCarMatrix = wholeCarMatrix * Translate(tx, ty, tz);
-	wholeCarMatrix = wholeCarMatrix * RotateX(rx);
-	wholeCarMatrix = wholeCarMatrix * RotateY(ry);
-	wholeCarMatrix = wholeCarMatrix * RotateZ(rz);
-	// move the car up for the wheels
-	wholeCarMatrix = wholeCarMatrix * Translate(0, 2.0, 0);
-	
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
-	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-
-	glBindVertexArray( vao[CAR] );
-	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
-
-	/* draw a head */
-	wholeCarMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
-	glBindVertexArray( vao[HEAD] );
-	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
-
-	/* draw eyes */
-	mat4 eyeMat;
-	eyeMat = wholeCarMatrix * Translate(-.2, .3, .8);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
-	glBindVertexArray( vao[EYE] );
-	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
-
-	eyeMat = wholeCarMatrix;
-	eyeMat = wholeCarMatrix * Translate(.2, .3, .8);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
-	glBindVertexArray( vao[EYE] );
-	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
-
-	/* draw stage */
-	mv = cameraMatrix;
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	glBindVertexArray( vao[STAGE] );
-	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the sphere
-
-	mv = cameraMatrix;
-
-	/* camera position */
-	//cameraRotation = 
-	mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	p = Perspective(90.0, (float)ww/(float)wh, 1.0, 200.0);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-
-	glFlush();
-	CheckError();
-	/*start processing buffered OpenGL routines*/
-	glutSwapBuffers();
-}
-
-
-void reshape(int width, int height){
-	ww= width;
-	wh = height;
-	//field of view angle, aspect ratio, closest distance from camera to object, largest distanec from camera to object
-	p = Perspective(90.0, (float)width/(float)height, 1.0, 150.0);
-
-	glViewport( 0, 0, width, height );
-}
-
-int main(int argc, char **argv)
-{
-	/*set up window for display*/
-	glutInit(&argc, argv);
-	glutInitWindowPosition(0, 0); 
-	glutInitWindowSize(ww, wh);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutCreateWindow("Transformations Exercise");  
-
-	glewExperimental = GL_TRUE;
-
-	glewInit();
-	init();
-
-	glutDisplayFunc(display);
-	glutKeyboardFunc(Keyboard);
-	glutReshapeFunc(reshape);
-	glutSpecialFunc(special);
-	//glutIdleFunc(idle);
-
-	glutMainLoop();
-	return 0;
-}
+		glutMainLoop();
+		return 0;
+	}
