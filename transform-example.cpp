@@ -20,11 +20,11 @@ GLfloat rx, ry, rz;
 mat4 mv, p;
 
 //used for zooming
-GLfloat cameraPosition_Dolly = 75.0f;
+GLfloat cameraPosition_Dolly = 45.0f;
 //used for dollying
 GLfloat cameraZoom_FOV = 90.0f;
 // camera rotation
-GLfloat cameraRotation = 90.0f;
+GLfloat cameraRotation = 5.0f;
 
 //and we'll need pointers to our shader variables
 GLuint model_view;
@@ -249,10 +249,12 @@ void Keyboard(unsigned char key, int x, int y) {
 	else if (key == 'f')
 	{
 		if (cameraRotation < 360) cameraRotation++;
+		else cameraRotation = 0;
 	}
 	else if (key == 'v')
 	{
 		if (cameraRotation > 0) cameraRotation--;
+		else cameraRotation = 360;
 	}
 	else if(key == 'i'){
 		rx += 5;
@@ -308,18 +310,9 @@ void special(int key, int x, int y){
 #define M_PI 3.14159265358979323846
 
 int spherevertcount;
-
 vec4* sphere_verts;
 vec4* sphere_colors;
-int headvertcount;
-vec4* head_verts;
-vec4* head_colors;
-int eyevertcount;
-vec4* eye_verts;
-vec4* eye_colors;
-
-//This could also be done as separate triangle strips, but I've chosen to make them just triangles so I don't have to execute multiple glDrawArrays() commands
-int generateSphere(float radius, int subdiv){
+int generateSphere(float radius, int subdiv, vec4 color){
 	float step = (360.0/subdiv)*(M_PI/180.0);
 
 	int totalverts = ceil(subdiv/2.0)*subdiv * 6;
@@ -330,7 +323,7 @@ int generateSphere(float radius, int subdiv){
 	sphere_verts = new vec4[totalverts];
 	sphere_colors = new vec4[totalverts];
 	for(int i=0; i<totalverts; i++){
-		sphere_colors[i] = vec4(1.0, 1.0, 1.0, 1.0); //white
+		sphere_colors[i] = color; //white
 	}
 
 	int k = 0;
@@ -360,8 +353,11 @@ int generateSphere(float radius, int subdiv){
 	return totalverts;
 }
 
+int circlevertcount;
 vec4* circle_verts;
-int generateCircle(float radius, int subdiv){
+vec4* circle_colors;
+int generateCircle(float radius, int subdiv, vec4 color){
+
 	float step = (360.0/subdiv)*(M_PI/180.0);
 
 	int totalverts = ceil(subdiv/2.0)*subdiv * 6;
@@ -370,13 +366,22 @@ int generateCircle(float radius, int subdiv){
 		delete[] circle_verts;
 	}
 	circle_verts = new vec4[totalverts];
-	int k = 0;
-	for(float i = -M_PI/2; i<=M_PI/2; i+=step){
-
-
+	circle_colors = new vec4[totalverts];
+	for(int i=0; i<totalverts; i++){
+		circle_colors[i] = color; //white
 	}
 
+	int i;
+	int sections = subdiv; //number of triangles to use to estimate a circle
+	GLfloat twoPi = 2.0f * M_PI;
 
+	
+	
+	for(i = 0; i <= sections;i++) 
+	{	
+		// make $section number of circles
+		circle_verts[i]=   vec4(radius * cos(i *  twoPi / sections), radius* sin(i * twoPi / sections), 0.0f);
+	}
 	return totalverts;
 }
 
@@ -449,7 +454,7 @@ void init() {
 	/** HEAD 
 	/*********************************************************/
 	// generate vertices for head 
-	spherevertcount = generateSphere(0.8, 30);
+	spherevertcount = generateSphere(0.8, 30, vec4(1.0, 0.5, 0.5, 1.0));
 
 	glBindVertexArray( vao[HEAD] );
 	glGenBuffers( 2, &vbo[HEAD_VERTS] );
@@ -461,6 +466,48 @@ void init() {
 
 	//and now our colors for each vertex
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_COLORS] );
+	glBufferData( GL_ARRAY_BUFFER,spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
+	vColor = glGetAttribLocation(program, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	/*********************************************************
+	/** EYE 
+	/*********************************************************/
+	// generate vertices for head 
+	spherevertcount = generateSphere(0.1, 30, vec4(1.0, 1.0, 1.0, 1.0));
+
+	glBindVertexArray( vao[EYE] );
+	glGenBuffers( 2, &vbo[EYE_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_VERTS] );
+	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
+	vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//and now our colors for each vertex
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
+	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
+	vColor = glGetAttribLocation(program, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	/*********************************************************
+	/** WHEEL 
+	/*********************************************************/
+	// generate vertices for head 
+	circlevertcount = generateCircle(0.1, 30, vec4(0.0, 0.0, 1.0, 1.0));
+
+	glBindVertexArray( vao[EYE] );
+	glGenBuffers( 2, &vbo[EYE_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_VERTS] );
+	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
+	vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//and now our colors for each vertex
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(sphere_colors), sphere_colors, GL_STATIC_DRAW );
 	vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
@@ -527,8 +574,6 @@ void display(void)
 	glBindVertexArray( vao[CUBE] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
 
- 
-
 
 	/* draw car */
 	mv = cameraMatrix;
@@ -550,6 +595,19 @@ void display(void)
 	wholeCarMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
 	glBindVertexArray( vao[HEAD] );
+	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
+
+	/* draw eyes */
+	mat4 eyeMat;
+	eyeMat = wholeCarMatrix * Translate(-.2, .3, .8);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
+	glBindVertexArray( vao[EYE] );
+	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
+
+	eyeMat = wholeCarMatrix;
+	eyeMat = wholeCarMatrix * Translate(.2, .3, .8);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
+	glBindVertexArray( vao[EYE] );
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 	/* draw stage */
