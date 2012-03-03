@@ -15,14 +15,13 @@ int ww=500, wh=500;
 GLfloat tx, ty, tz;
 GLfloat rx, ry, rz;
 
-//need some arrays to store cube attributes
-//GLuint vao[1];
-//GLuint vbo[2];
-GLuint vao[3];
-GLuint vbo[6];
-
 //our modelview and perspective matrices
 mat4 mv, p;
+
+//used for zooming
+GLfloat cameraPosition_Dolly = -115.0;
+//used for dollying
+GLfloat cameraZoom_FOV = 90.0;
 
 //and we'll need pointers to our shader variables
 GLuint model_view;
@@ -30,6 +29,56 @@ GLuint projection;
 GLuint vPosition;
 GLuint vColor;
 
+/** CAR OBJECT **/
+#define STAGE_WIDTH 100.0f
+#define STAGE_DEPTH 100.0f
+
+enum VAO_OBJECTS
+{
+	CUBE,
+	CAR,
+	HEAD,
+	EYE,
+	STAGE,
+	NUMBER_OF_VAO_OBJECTS
+};
+
+enum VBO_OBJECTS
+{
+	CUBE_VERTS,
+	CUBE_COLORS,
+	CAR_VERTS,
+	CAR_COLORS,
+	HEAD_VERTS,
+	HEAD_COLORS,
+	EYE_VERTS,
+	EYE_COLORS,
+	STAGE_VERTS,
+	STAGE_COLORS,
+	NUMBER_OF_VBO_OBJECTS
+};
+
+//need some arrays to store cube attributes
+GLuint vao[NUMBER_OF_VBO_OBJECTS];
+GLuint vbo[NUMBER_OF_VBO_OBJECTS];
+
+
+vec4 stageVerts[6];
+vec4 stageColors[6];
+
+void generateStage() {
+	for(int i=0; i<6; i++){
+		stageColors[i] = vec4(0.5, 0.5, 0.5, 1.0); //front
+	}
+	stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, -(STAGE_DEPTH/2.0f), 1.0);
+	stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
+	stageVerts[2] = vec4((STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
+	stageVerts[3] = vec4((STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
+	stageVerts[4] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, -(STAGE_DEPTH/2.0f), 1.0);
+	stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
+}
+
+/** CAR OBJECT **/
 vec4 carVerts[36];
 vec4 carColors[36];
 void generateCar() {
@@ -94,6 +143,8 @@ void generateCar() {
 	carVerts[35] = vec4(1.0f, -1.0f, -5.0f, 1.0);
 }
 
+
+/** CUBE OBJECT **/
 vec4 cubeVerts[36];
 vec4 cubeColors[36];
 void generateCube(){
@@ -168,6 +219,14 @@ void Keyboard(unsigned char key, int x, int y) {
 		tz += 0.1;
 	else if(key == 'z')
 		tz -= 0.1;
+	else if(key == 's')
+	{
+		if (cameraPosition_Dolly < -25) cameraPosition_Dolly++;
+	}
+	else if (key == 'x')
+	{
+		if (cameraPosition_Dolly > -400) cameraPosition_Dolly--;
+	}
 	else if(key == 'i'){
 		rx += 5;
 		if(rx > 360)
@@ -272,7 +331,11 @@ int generateCircle(float radius, int subdiv){
 		delete[] circle_verts;
 	}
 	circle_verts = new vec4[totalverts];
+	int k = 0;
+	for(float i = -M_PI/2; i<=M_PI/2; i+=step){
 
+
+	}
 
 
 	return totalverts;
@@ -286,6 +349,7 @@ void init() {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 	//populate our arrays
+	generateStage();
 	//first parameter is how big you want the sphere to be
 	//second parameter is how many subdivisions you want 
 	spherevertcount = generateSphere(0.8, 30);
@@ -300,19 +364,20 @@ void init() {
 	glUseProgram( program );
 
 	// Create a vertex array object
-	glGenVertexArrays( 2, vao );
+	glGenVertexArrays( NUMBER_OF_VAO_OBJECTS, vao );
 
+	// CUBE
 	// Create and initialize any buffer objects
-	glBindVertexArray( vao[0] );
-	glGenBuffers( 2, &vbo[0] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[0] );
+	glBindVertexArray( vao[CUBE] );
+	glGenBuffers( 2, &vbo[CUBE_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_VERTS] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
 	vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[1] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_COLORS] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeColors), cubeColors, GL_STATIC_DRAW );
 	vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
@@ -325,16 +390,16 @@ void init() {
 	// Create and initialize **CAR** buffer objects
 	// Create a vertex array object
 	//glGenVertexArrays( 1, &vao[1] );
-	glBindVertexArray( vao[1] );
-	glGenBuffers( 2, &vbo[2] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[2] );
+	glBindVertexArray( vao[CAR] );
+	glGenBuffers( 2, &vbo[CAR_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_VERTS] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
 	vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//and now our colors for each vertex
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[3] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_COLORS] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(carColors), carColors, GL_STATIC_DRAW );
 	vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
@@ -347,13 +412,38 @@ void init() {
 	/*********************************************************
 	/** HEAD 
 	/*********************************************************/
-	glBindVertexArray( vao[2] );
-	glGenBuffers( 2, &vbo[4] );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo[4] );
+	glBindVertexArray( vao[HEAD] );
+	glGenBuffers( 2, &vbo[HEAD_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_VERTS] );
 	glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
 	vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	/*********************************************************
+	* STAGE
+	*
+	*********************************************************/
+	// Create a vertex array object
+
+	glBindVertexArray( vao[STAGE] );
+	glGenBuffers( 2, &vbo[STAGE_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_VERTS] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(stageVerts), stageVerts, GL_STATIC_DRAW);
+	vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//and now our colors for each vertex
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_COLORS] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(stageColors), stageColors, GL_STATIC_DRAW );
+	vColor = glGetAttribLocation(program, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//grab pointers for our modelview and perspecive uniform matrices
+	model_view = glGetUniformLocation(program, "model_view");
+	projection = glGetUniformLocation(program, "projection");
 
 	//Only draw the things in the front layer
 	glEnable(GL_DEPTH_TEST);
@@ -377,7 +467,7 @@ void display(void)
 
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
-	glBindVertexArray( vao[0] );
+	glBindVertexArray( vao[CUBE] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
 
 	/* second cube */
@@ -387,7 +477,7 @@ void display(void)
 
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
-	glBindVertexArray( vao[0] );
+	glBindVertexArray( vao[CUBE] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
 
 
@@ -401,16 +491,30 @@ void display(void)
 
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
-	glBindVertexArray( vao[1] );
+	glBindVertexArray( vao[CAR] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 
 	/* draw a head */
 	//mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	mv = mv * Translate(0, 1.5, 0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	glBindVertexArray( vao[2] );
+	glBindVertexArray( vao[HEAD] );
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
+	/* draw stage */
+	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	mv = mv * Translate(10.5, -10.5, -20);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+	glBindVertexArray( vao[STAGE] );
+	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the sphere
+
+
+	/* camera position */
+	//cameraRotation = 
+	mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	p = Perspective(90.0, (float)ww/(float)wh, 1.0, 200.0);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
 	glFlush();
 	/*start processing buffered OpenGL routines*/
@@ -422,7 +526,7 @@ void reshape(int width, int height){
 	ww= width;
 	wh = height;
 	//field of view angle, aspect ratio, closest distance from camera to object, largest distanec from camera to object
-	p = Perspective(45.0, (float)width/(float)height, 1.0, 100.0);
+	p = Perspective(90.0, (float)width/(float)height, 1.0, 200.0);
 
 	glViewport( 0, 0, width, height );
 }
