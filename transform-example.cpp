@@ -3,11 +3,12 @@ example implementation of the transformation in-class exercise
 **/
 
 #include <GL/Angel.h>
+#include <GL/CheckError.h>
 #include <math.h>
 #pragma comment(lib, "glew32.lib")
 
 //store window width and height
-int ww=500, wh=500;
+int ww=1200, wh=800;
 
 #define M_PI 3.14159265358979323846
 
@@ -19,9 +20,11 @@ GLfloat rx, ry, rz;
 mat4 mv, p;
 
 //used for zooming
-GLfloat cameraPosition_Dolly = -115.0;
+GLfloat cameraPosition_Dolly = 75.0f;
 //used for dollying
-GLfloat cameraZoom_FOV = 90.0;
+GLfloat cameraZoom_FOV = 90.0f;
+// camera rotation
+GLfloat cameraRotation = 90.0f;
 
 //and we'll need pointers to our shader variables
 GLuint model_view;
@@ -30,8 +33,14 @@ GLuint vPosition;
 GLuint vColor;
 
 /** CAR OBJECT **/
+#define CAR_WIDTH 2.0f
+#define CAR_HEIGHT 2.0f
+#define CAR_LENGTH 5.0f
+
 #define STAGE_WIDTH 100.0f
 #define STAGE_DEPTH 100.0f
+
+
 
 enum VAO_OBJECTS
 {
@@ -70,12 +79,12 @@ void generateStage() {
 	for(int i=0; i<6; i++){
 		stageColors[i] = vec4(0.5, 0.5, 0.5, 1.0); //front
 	}
-	stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, -(STAGE_DEPTH/2.0f), 1.0);
-	stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
-	stageVerts[2] = vec4((STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
-	stageVerts[3] = vec4((STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
-	stageVerts[4] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, -(STAGE_DEPTH/2.0f), 1.0);
-	stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f), 0.0f, (STAGE_DEPTH/2.0f), 1.0);
+	stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
+	stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+	stageVerts[2] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+	stageVerts[3] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+	stageVerts[4] = vec4((STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
+	stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
 }
 
 /** CAR OBJECT **/
@@ -83,62 +92,63 @@ vec4 carVerts[36];
 vec4 carColors[36];
 void generateCar() {
 	for(int i=0; i<6; i++){
-		carColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //front
+		carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //front
 	}
-	carVerts[0] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[1] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[2] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[3] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[4] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[5] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
+	carVerts[1] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		0.0f, 1.0);
+	carVerts[2] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		0.0f, 1.0);
+	carVerts[3] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		0.0f, 1.0);
+	carVerts[4] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	0.0f, 1.0);
+	carVerts[5] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
 
 	for(int i=6; i<12; i++){
-		carColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //back
+		carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //back, black
 	}
-	carVerts[6] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
-	carVerts[7] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-	carVerts[8] = vec4(1.0f, 1.0f, -1.0f, 1.0);
-	carVerts[9] = vec4(1.0f, 1.0f, -1.0f, 1.0);
-	carVerts[10] = vec4(1.0f, -1.0f, -1.0f, 1.0);
-	carVerts[11] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+	//				X						Y					Z
+	carVerts[6] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
+	carVerts[7] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
+	carVerts[8] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
+	carVerts[9] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
+	carVerts[10] = vec4(CAR_WIDTH/2,	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
+	carVerts[11] = vec4(-(CAR_WIDTH/2), -(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
 
 	for(int i=12; i<18; i++){
 		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //right
 	}
-	carVerts[12] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[13] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[14] = vec4(1.0f, -1.0f, -5.0f, 1.0);
-	carVerts[15] = vec4(1.0f, -1.0f, -5.0f, 1.0);
-	carVerts[16] = vec4(1.0f, 1.0f, -5.0f, 1.0);
-	carVerts[17] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	carVerts[12] = vec4(1.0f, 1.0f,		0.0f,			1.0);
+	carVerts[13] = vec4(1.0f, -1.0f,	0.0f,			1.0);
+	carVerts[14] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
+	carVerts[15] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
+	carVerts[16] = vec4(1.0f, 1.0f,		-(CAR_LENGTH),	1.0);
+	carVerts[17] = vec4(1.0f, 1.0f,		-(CAR_LENGTH),	1.0);
 
 	for(int i=18; i<24; i++){
 		carColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //left
 	}
-	carVerts[18] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
-	carVerts[19] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
-	carVerts[20] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[21] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[22] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[23] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
+	carVerts[18] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
+	carVerts[19] = vec4(-1.0f, -1.0f,	-(CAR_LENGTH),		1.0);
+	carVerts[20] = vec4(-1.0f, -1.0f,	0.0f,				1.0);
+	carVerts[21] = vec4(-1.0f, -1.0f,	0.0f,				1.0);
+	carVerts[22] = vec4(-1.0f, 1.0f,	0.0f,				1.0);
+	carVerts[23] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
 
 	for(int i=24; i<30; i++){
 		carColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
 	}
-	carVerts[24] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[25] = vec4(1.0f, 1.0f, -5.0f, 1.0);
-	carVerts[26] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
-	carVerts[27] = vec4(-1.0f, 1.0f, -5.0f, 1.0);
-	carVerts[28] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	carVerts[29] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	carVerts[24] = vec4(1.0f, 1.0f, 0.0f, 1.0);
+	carVerts[25] = vec4(1.0f, 1.0f, -(CAR_LENGTH), 1.0);
+	carVerts[26] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
+	carVerts[27] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
+	carVerts[28] = vec4(-1.0f, 1.0f, 0.0f, 1.0);
+	carVerts[29] = vec4(1.0f, 1.0f, 0.0f, 1.0);
 
 	for(int i=30; i<36; i++){
 		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
 	}
 	carVerts[30] = vec4(1.0f, -1.0f, -5.0f, 1.0);
-	carVerts[31] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[32] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	carVerts[33] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	carVerts[31] = vec4(1.0f, -1.0f, 0.0f, 1.0);
+	carVerts[32] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
+	carVerts[33] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
 	carVerts[34] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
 	carVerts[35] = vec4(1.0f, -1.0f, -5.0f, 1.0);
 }
@@ -221,11 +231,28 @@ void Keyboard(unsigned char key, int x, int y) {
 		tz -= 0.1;
 	else if(key == 's')
 	{
-		if (cameraPosition_Dolly < -25) cameraPosition_Dolly++;
+		printf("s pressed, cameraPosition_Dolly: %f\n", cameraPosition_Dolly);
+		if (cameraPosition_Dolly < 200) 
+		{
+			printf("cameraPosition_Dolly < -25\n");
+			cameraPosition_Dolly++;
+		}
 	}
 	else if (key == 'x')
 	{
-		if (cameraPosition_Dolly > -400) cameraPosition_Dolly--;
+		printf("s pressed, cameraPosition_Dolly: %f\n", cameraPosition_Dolly);
+		if (cameraPosition_Dolly > 5) {
+			printf("cameraPosition_Dolly > -400\n");
+			cameraPosition_Dolly--;
+		}
+	}
+	else if (key == 'f')
+	{
+		if (cameraRotation < 360) cameraRotation++;
+	}
+	else if (key == 'v')
+	{
+		if (cameraRotation > 0) cameraRotation--;
 	}
 	else if(key == 'i'){
 		rx += 5;
@@ -283,6 +310,14 @@ void special(int key, int x, int y){
 int spherevertcount;
 
 vec4* sphere_verts;
+vec4* sphere_colors;
+int headvertcount;
+vec4* head_verts;
+vec4* head_colors;
+int eyevertcount;
+vec4* eye_verts;
+vec4* eye_colors;
+
 //This could also be done as separate triangle strips, but I've chosen to make them just triangles so I don't have to execute multiple glDrawArrays() commands
 int generateSphere(float radius, int subdiv){
 	float step = (360.0/subdiv)*(M_PI/180.0);
@@ -293,6 +328,10 @@ int generateSphere(float radius, int subdiv){
 		delete[] sphere_verts;
 	}
 	sphere_verts = new vec4[totalverts];
+	sphere_colors = new vec4[totalverts];
+	for(int i=0; i<totalverts; i++){
+		sphere_colors[i] = vec4(1.0, 1.0, 1.0, 1.0); //white
+	}
 
 	int k = 0;
 	for(float i = -M_PI/2; i<=M_PI/2; i+=step){
@@ -344,15 +383,12 @@ int generateCircle(float radius, int subdiv){
 
 
 void init() {
-
 	/*select clearing (background) color*/
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 	//populate our arrays
 	generateStage();
-	//first parameter is how big you want the sphere to be
-	//second parameter is how many subdivisions you want 
-	spherevertcount = generateSphere(0.8, 30);
+	
 	generateCube();
 	generateCar();
 	//set up transformation defaults
@@ -412,6 +448,9 @@ void init() {
 	/*********************************************************
 	/** HEAD 
 	/*********************************************************/
+	// generate vertices for head 
+	spherevertcount = generateSphere(0.8, 30);
+
 	glBindVertexArray( vao[HEAD] );
 	glGenBuffers( 2, &vbo[HEAD_VERTS] );
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_VERTS] );
@@ -419,6 +458,13 @@ void init() {
 	vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//and now our colors for each vertex
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_COLORS] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(sphere_colors), sphere_colors, GL_STATIC_DRAW );
+	vColor = glGetAttribLocation(program, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	/*********************************************************
 	* STAGE
@@ -453,61 +499,66 @@ void display(void)
 {
 	/*clear all pixels*/
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	mat4 cameraMatrix;
+	mat4 wholeCarMatrix;
+	mat4 headMatrix;
+	mat4 frontWheelsMatrix;
+	mat4 allWheelsMatrix;
 
-	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	cameraMatrix = cameraMatrix * RotateY(cameraRotation);
 
-	mv = mv * Translate(-4,-4,0);
+	mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	wholeCarMatrix = cameraMatrix  * RotateX(rx);
+	wholeCarMatrix = cameraMatrix  * RotateY(ry);
+	wholeCarMatrix = cameraMatrix  * RotateZ(rz);
+	wholeCarMatrix = cameraMatrix * Translate(tx, ty, tz);
+
+	mv = cameraMatrix * mv;
+	mv = mv * Translate(-2,0,0);
 	mv = mv * Translate(tx, ty, tz);
 
-	mv = mv *RotateX(rx);
+	mv = mv * RotateX(rx);
 	mv = mv * RotateY(ry);
 	mv = mv * RotateZ(rz);
 
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-
 	glBindVertexArray( vao[CUBE] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
 
-	/* second cube */
-	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	mv = mv * Translate(4, 4, 0);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-
-	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-
-	glBindVertexArray( vao[CUBE] );
-	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube 
+ 
 
 
 	/* draw car */
-	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	mv = mv * Translate(tx, ty, tz);
-	mv = mv *RotateX(rx);
-	mv = mv * RotateY(ry);
-	mv = mv * RotateZ(rz);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-
+	mv = cameraMatrix;
+	wholeCarMatrix = mv;
+	wholeCarMatrix = wholeCarMatrix * Translate(tx, ty, tz);
+	wholeCarMatrix = wholeCarMatrix * RotateX(rx);
+	wholeCarMatrix = wholeCarMatrix * RotateY(ry);
+	wholeCarMatrix = wholeCarMatrix * RotateZ(rz);
+	// move the car up for the wheels
+	wholeCarMatrix = wholeCarMatrix * Translate(0, 2.0, 0);
+	
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
 	glBindVertexArray( vao[CAR] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 
 	/* draw a head */
-	//mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	mv = mv * Translate(0, 1.5, 0);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+	wholeCarMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
 	glBindVertexArray( vao[HEAD] );
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 	/* draw stage */
-	mv = LookAt(vec4(0, 0, 20, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	mv = mv * Translate(10.5, -10.5, -20);
+	mv = cameraMatrix;
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 	glBindVertexArray( vao[STAGE] );
 	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the sphere
 
+	mv = cameraMatrix;
 
 	/* camera position */
 	//cameraRotation = 
@@ -517,6 +568,7 @@ void display(void)
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
 	glFlush();
+	CheckError();
 	/*start processing buffered OpenGL routines*/
 	glutSwapBuffers();
 }
@@ -526,7 +578,7 @@ void reshape(int width, int height){
 	ww= width;
 	wh = height;
 	//field of view angle, aspect ratio, closest distance from camera to object, largest distanec from camera to object
-	p = Perspective(90.0, (float)width/(float)height, 1.0, 200.0);
+	p = Perspective(90.0, (float)width/(float)height, 1.0, 150.0);
 
 	glViewport( 0, 0, width, height );
 }
