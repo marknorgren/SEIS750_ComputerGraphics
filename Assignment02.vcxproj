@@ -60,16 +60,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="fshader-transform.glsl" />
-    <None Include="vshader-transform.glsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="InitShader.cpp" />
     <ClCompile Include="matrix_stack.cpp" />
     <ClCompile Include="transform-example.cpp" />
+    <ClCompile Include="wheel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="matrix_stack.h" />
+    <ClInclude Include="MRKCheckError.h" />
+    <ClInclude Include="racecar.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fshader-transform.glsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="vshader-transform.glsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
