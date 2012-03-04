@@ -423,7 +423,7 @@ int generateCircle(float radius, int subdiv, vec4 color){
 	float step = (360.0/subdiv)*(M_PI/180.0);
 	printf("step: %f\n", step);
 	
-	int totalverts = subdiv+2;//ceil(subdiv/2.0)*subdiv ;
+	int totalverts = subdiv+15;//ceil(subdiv/2.0)*subdiv ;
 	printf("totalVerts: %d\n", totalverts);
 	if(circle_verts){
 		delete[] circle_verts;
@@ -441,27 +441,19 @@ int generateCircle(float radius, int subdiv, vec4 color){
 	int vert_count = 1;
 	// initial point at origin
 	circle_verts[0] = vec4(0.0f,0.0f,0.0f,1.0);
-	/*
-	for (a=-M_PI; a<M_PI; a+=step) {
-		x = cos(a)*radius;
-		y = sin(a)*radius;
-		z = 0.0f;
-		circle_verts[vert_count] = vec4(x, y, z, 1.0);
-		vert_count++;
-	}
-	*/
-	for (int i=0;i<totalverts;i++)
+
+	for (int i=0;i<=totalverts;i++)
 	{
 		float angle = i * 2 * M_PI/totalverts;
 		x = cos(angle) * radius;
-		y = cos(angle) * radius;
+		y = sin(angle) * radius;
 		z = 0.0f;
 		circle_verts[vert_count] = vec4(x, y, z, 1.0);
 		vert_count++;
 	}
 
 
-	for (int i=0;i<totalverts;i++)
+	for (int i=0;i<=totalverts;i++)
 	{
 		printf("index,%d,x,%f,y,%f,z,%f\n", i, circle_verts[i][0], circle_verts[i][1], circle_verts[i][2]); 
 	}
@@ -470,6 +462,79 @@ int generateCircle(float radius, int subdiv, vec4 color){
 }
 
 
+
+
+
+#define CAR_SPEED 0.1f
+void my_timer (int v)
+{
+	GLfloat txBeforeMove = 0.0f;
+	GLfloat tzBeforeMove = 0.0f;
+	if (drivingForward) {
+
+		if (wheelsTurned > 0) // TURNING LEFT
+		{
+			ry += (0.5 + (wheelsTurned*0.4));
+			carHeading = (ry*M_PI)/180;
+			if(ry > 360)
+			{
+				ry -= 360;
+			}
+		}
+		if (wheelsTurned < 0) // TURNING RIGHT
+		{
+			ry -= (0.5 - (wheelsTurned*0.4));
+			carHeading = (ry*M_PI)/180;
+			if(ry < 0)
+			{
+				ry += 360;
+			}
+		}
+		
+			// save current position
+			txBeforeMove = tx;
+			tzBeforeMove = tz;
+			tz += CAR_SPEED * cos(carHeading);
+			tx += CAR_SPEED * sin(carHeading);
+			if (tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2)) // if next position puts car outside of stage area rollback update, stop moving
+			{
+				tx = txBeforeMove;
+				tz = tzBeforeMove;
+				drivingForward = false;
+			}
+		
+	
+		printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
+		//printf("tz: %f, tx: %f\n", tz, tx);
+	}
+
+	if (drivingBackward) {
+		tz -= CAR_SPEED * cos(carHeading);
+		tx -= CAR_SPEED * sin(carHeading);
+
+		if (wheelsTurned > 0) // WHEELS TURNED LEFT
+		{	
+			ry -= (0.5 + (wheelsTurned*0.4));
+			carHeading = (ry*M_PI)/180;
+			if(ry > 360)
+			{
+				ry -= 360;
+			}
+		}
+		if (wheelsTurned < 0) // WHEELS TURNED RIGHT
+
+		{
+			ry += (0.5 - (wheelsTurned*0.4));
+			carHeading = (ry*M_PI)/180;
+			if(ry < 0)
+			{
+				ry += 360;
+			}
+		}
+	}
+	glutPostRedisplay();
+	glutTimerFunc(1000/v, my_timer, v);
+}
 
 void init() {
 	/*select clearing (background) color*/
@@ -625,48 +690,6 @@ void init() {
 	//Only draw the things in the front layer
 	glEnable(GL_DEPTH_TEST);
 }
-
-#define CAR_SPEED 0.1f
-void my_timer (int v)
-{
-	if (drivingForward) {
-
-		if (wheelsTurned > 0) // TURNING LEFT
-		{
-			ry += (0.5 + (wheelsTurned*0.4));
-			carHeading = (ry*M_PI)/180;
-			if(ry > 360)
-			{
-				ry -= 360;
-			}
-		}
-		if (wheelsTurned < 0) // TURNING RIGHT
-		{
-			ry -= (0.5 - (wheelsTurned*0.4));
-			carHeading = (ry*M_PI)/180;
-			if(ry < 0)
-			{
-				ry += 360;
-			}
-
-		}
-		if (tx > -((STAGE_WIDTH-5)/2) && tx < ((STAGE_WIDTH-5)/2))
-		{
-			tz += CAR_SPEED * cos(carHeading);
-			tx += CAR_SPEED * sin(carHeading);
-		}
-		printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
-		//printf("tz: %f, tx: %f\n", tz, tx);
-	}
-
-	if (drivingBackward) {
-		tz -= CAR_SPEED * cos(carHeading);
-		tx -= CAR_SPEED * sin(carHeading);
-	}
-	glutPostRedisplay();
-	glutTimerFunc(1000/v, my_timer, v);
-}
-
 
 void display(void)
 {
