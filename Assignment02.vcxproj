@@ -62,12 +62,10 @@
   <ItemGroup>
     <ClCompile Include="InitShader.cpp" />
     <ClCompile Include="matrix_stack.cpp" />
-    <ClCompile Include="assignment1.cpp" />
-    <ClCompile Include="wheel.cpp" />
+    <ClCompile Include="assignment2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MRKCheckError.h" />
-    <ClInclude Include="racecar.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fshader-transform.glsl">
