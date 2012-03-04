@@ -14,11 +14,10 @@
 //store window width and height
 int ww=1200, wh=800;
 
-//these are the extra variables needed for the exercise
 GLfloat tx, ty, tz;
 GLfloat rx, ry, rz;
 
-//our modelview and perspective matrices
+//modelview and perspective matrices
 mat4 mv, p;
 
 //used for zooming
@@ -474,6 +473,7 @@ int generateCircle(float radius, int subdiv, vec4 color){
 
 
 #define CAR_SPEED 0.1f
+#define WHEEL_TURN_FACTOR 0.1f
 void my_timer (int v)
 {
 	GLfloat txBeforeMove = 0.0f;
@@ -485,7 +485,7 @@ void my_timer (int v)
 
 		if (wheelsTurned > 0) // TURNING LEFT
 		{
-			ry += (0.5 + (wheelsTurned*0.4));
+			ry += (0.5 + (wheelsTurned*WHEEL_TURN_FACTOR));
 			carHeading = (ry*M_PI)/180;
 			if(ry > 360)
 			{
@@ -494,7 +494,7 @@ void my_timer (int v)
 		}
 		if (wheelsTurned < 0) // TURNING RIGHT
 		{
-			ry -= (0.5 - (wheelsTurned*0.4));
+			ry -= (0.5 - (wheelsTurned*WHEEL_TURN_FACTOR));
 			carHeading = (ry*M_PI)/180;
 			if(ry < 0)
 			{
@@ -525,7 +525,7 @@ void my_timer (int v)
 		if (wheelRotation<0) wheelRotation+=360;
 		if (wheelsTurned > 0) // WHEELS TURNED LEFT
 		{	
-			ry -= (0.5 + (wheelsTurned*0.4));
+			ry -= (0.5 + (wheelsTurned*WHEEL_TURN_FACTOR));
 			carHeading = (ry*M_PI)/180;
 			if(ry > 360)
 			{
@@ -534,7 +534,7 @@ void my_timer (int v)
 		}
 		if (wheelsTurned < 0) // WHEELS TURNED RIGHT
 		{
-			ry += (0.5 - (wheelsTurned*0.4));
+			ry += (0.5 - (wheelsTurned*WHEEL_TURN_FACTOR));
 			carHeading = (ry*M_PI)/180;
 			if(ry < 0)
 			{
@@ -901,7 +901,7 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0); 
 	glutInitWindowSize(ww, wh);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutCreateWindow("Transformations Exercise");  
+	glutCreateWindow("SEIS750 - Assignment 2 - Mark Norgren");  
 
 	glewExperimental = GL_TRUE;
 
