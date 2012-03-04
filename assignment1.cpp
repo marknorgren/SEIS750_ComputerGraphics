@@ -39,6 +39,7 @@ GLfloat carHeading = 0.0f;
 GLfloat rotateHead = 0.0f;
 bool drivingForward = false;
 bool drivingBackward = false;
+int wheelsTurned = 0;
 
 /** CAR OBJECT **/
 #define CAR_WIDTH 2.0f
@@ -353,23 +354,17 @@ void special(int key, int x, int y){
 	/***** TURN CAR *****/
 	else if(key == GLUT_KEY_LEFT)
 	{
-
-		ry += 1;
-		carHeading = (ry*M_PI)/180;
-		if(ry > 360)
-		{
-			ry -= 360;
-		}
+		
+		if (wheelsTurned < 5) wheelsTurned++;
+		printf(" TURNING LEFT: wheelsTurned: %d\n", wheelsTurned);
+		
 	}
 	/***** TURN CAR *****/ 
 	else if(key == GLUT_KEY_RIGHT)
 	{
-		ry -= 1;
-		carHeading = (ry*M_PI)/180;
-		if(ry < 0)
-		{
-			ry += 360;
-		}
+		if (wheelsTurned > -5) wheelsTurned--;
+		printf(" TURNING RIGHT: wheelsTurned: %d\n", wheelsTurned);
+		
 	}
 	glutPostRedisplay();
 }
@@ -636,12 +631,32 @@ void my_timer (int v)
 {
 	if (drivingForward) {
 
+		if (wheelsTurned > 0) // TURNING LEFT
+		{
+			ry += (0.5 + (wheelsTurned*0.4));
+			carHeading = (ry*M_PI)/180;
+			if(ry > 360)
+			{
+				ry -= 360;
+			}
+		}
+		if (wheelsTurned < 0) // TURNING RIGHT
+		{
+			ry -= (0.5 - (wheelsTurned*0.4));
+			carHeading = (ry*M_PI)/180;
+			if(ry < 0)
+			{
+				ry += 360;
+			}
+
+		}
 		if (tx > -((STAGE_WIDTH-5)/2) && tx < ((STAGE_WIDTH-5)/2))
 		{
 			tz += CAR_SPEED * cos(carHeading);
 			tx += CAR_SPEED * sin(carHeading);
 		}
-		printf("tz: %f, tx: %f\n", tz, tx);
+		printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
+		//printf("tz: %f, tx: %f\n", tz, tx);
 	}
 
 	if (drivingBackward) {
