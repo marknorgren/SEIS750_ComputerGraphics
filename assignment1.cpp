@@ -35,7 +35,11 @@ GLuint projection;
 GLuint vPosition;
 GLuint vColor;
 
-float carHeading = 0.0f;
+GLfloat carHeading = 0.0f;
+GLfloat rotateHead = 0.0f;
+bool drivingForward = false;
+bool drivingBackward = false;
+
 /** CAR OBJECT **/
 #define CAR_WIDTH 2.0f
 #define CAR_HEIGHT 2.0f
@@ -231,11 +235,6 @@ void Keyboard(unsigned char key, int x, int y) {
 	/*exit when the escape key is pressed*/
 	if (key == 27)
 		exit(0);
-
-	if(key == 'a')
-		tz += 0.1;
-	else if(key == 'z')
-		tz -= 0.1;
 	else if(key == 's')
 	{
 		printf("s pressed, cameraPosition_Dolly: %f\n", cameraPosition_Dolly);
@@ -245,7 +244,7 @@ void Keyboard(unsigned char key, int x, int y) {
 			cameraPosition_Dolly++;
 		}
 	}
-	else if (key == 'x')
+	else if (key == 'a')
 	{
 		printf("s pressed, cameraPosition_Dolly: %f\n", cameraPosition_Dolly);
 		if (cameraPosition_Dolly > 5) {
@@ -293,6 +292,20 @@ void Keyboard(unsigned char key, int x, int y) {
 		if(rz < 0)
 			rz += 360;
 	}
+	else if (key == 'z'){
+		rotateHead += 5;
+		if (rotateHead > 360)
+			rotateHead -= 360;
+	}
+	else if (key == 'x'){
+		rotateHead -= 5;
+		if (rotateHead < 360)
+			rotateHead+= 360;
+	}
+	else if (key == ' '){
+		drivingBackward = false;
+		drivingForward = false;
+	}
 	//don't forget to request a new frame since parameters have changed
 	glutPostRedisplay();
 
@@ -301,24 +314,19 @@ void Keyboard(unsigned char key, int x, int y) {
 void special(int key, int x, int y){
 	if(key == GLUT_KEY_UP)
 	{
-		if (tx > -((STAGE_WIDTH-5)/2) && tx < ((STAGE_WIDTH-5)/2))
-		{
-			tz += 3.0f * cos(carHeading);
-		//if (tx > STAGE_WIDTH/2)
-			tx += 3.0f * sin(carHeading);
-		}
-		printf("tz: %f, tx: %f\n", tz, tx);
+		drivingForward = true;
+		drivingBackward = false;
 	}
 	else if(key == GLUT_KEY_DOWN)
 	{
-		tz -= 3.0f * cos(carHeading);
-		tx -= 3.0f * sin(carHeading);
+		drivingBackward = true;
+		drivingForward = false;
 	}
 	/***** TURN CAR *****/
 	else if(key == GLUT_KEY_LEFT)
 	{
 		
-		ry += 5;
+		ry += 1;
 		carHeading = (ry*M_PI)/180;
 		if(ry > 360)
 		{
@@ -328,7 +336,7 @@ void special(int key, int x, int y){
 	/***** TURN CAR *****/ 
 	else if(key == GLUT_KEY_RIGHT)
 	{
-		ry -= 5;
+		ry -= 1;
 		carHeading = (ry*M_PI)/180;
 		if(ry < 0)
 		{
@@ -579,6 +587,32 @@ void special(int key, int x, int y){
 		glEnable(GL_DEPTH_TEST);
 	}
 
+#define CAR_SPEED 0.1f
+	void my_timer (int v)
+	{
+		if (drivingForward) {
+
+
+			if (tx > -((STAGE_WIDTH-5)/2) && tx < ((STAGE_WIDTH-5)/2))
+			{
+				tz += CAR_SPEED * cos(carHeading);
+				//if (tx > STAGE_WIDTH/2)
+				tx += CAR_SPEED * sin(carHeading);
+			}
+			printf("tz: %f, tx: %f\n", tz, tx);
+		}
+
+		if (drivingBackward) {
+
+			tz -= CAR_SPEED * cos(carHeading);
+			tx -= CAR_SPEED * sin(carHeading);
+
+		}
+		glutPostRedisplay();
+		glutTimerFunc(1000/v, my_timer, v);
+	}
+
+
 	void display(void)
 	{
 		/*clear all pixels*/
@@ -589,9 +623,10 @@ void special(int key, int x, int y){
 		mat4 frontWheelsMatrix;
 		mat4 allWheelsMatrix;
 
+
 		cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 		cameraMatrix = cameraMatrix * RotateY(cameraRotation);
-		allWheelsMatrix =LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		allWheelsMatrix = cameraMatrix;
 		mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 		wholeCarMatrix = cameraMatrix  * RotateX(rx);
 		wholeCarMatrix = cameraMatrix  * RotateY(ry);
@@ -629,20 +664,21 @@ void special(int key, int x, int y){
 		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 
 		/* draw a head */
-		wholeCarMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
-		glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
+		headMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
+		headMatrix = headMatrix * RotateY(rotateHead);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, headMatrix);
 		glBindVertexArray( vao[HEAD] );
 		glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 		/* draw eyes */
 		mat4 eyeMat;
-		eyeMat = wholeCarMatrix * Translate(-.2, .3, .8);
+		eyeMat = headMatrix * Translate(-.2, .3, .8);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
 		glBindVertexArray( vao[EYE] );
 		glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
-		eyeMat = wholeCarMatrix;
-		eyeMat = wholeCarMatrix * Translate(.2, .3, .8);
+		eyeMat = headMatrix;
+		eyeMat = headMatrix * Translate(.2, .3, .8);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
 		glBindVertexArray( vao[EYE] );
 		glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
@@ -702,7 +738,7 @@ void special(int key, int x, int y){
 		glutKeyboardFunc(Keyboard);
 		glutReshapeFunc(reshape);
 		glutSpecialFunc(special);
-		//glutIdleFunc(idle);
+		glutTimerFunc(500,my_timer,60);
 
 		glutMainLoop();
 		return 0;
