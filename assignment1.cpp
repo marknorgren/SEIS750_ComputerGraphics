@@ -11,7 +11,7 @@ example implementation of the transformation in-class exercise
 //store window width and height
 int ww=1200, wh=800;
 
-#define M_PI 3.14159265358979323846
+
 
 //these are the extra variables needed for the exercise
 GLfloat tx, ty, tz;
@@ -40,6 +40,7 @@ GLfloat rotateHead = 0.0f;
 bool drivingForward = false;
 bool drivingBackward = false;
 int wheelsTurned = 0;
+GLfloat wheelRotation = 0.0f;
 
 /** CAR OBJECT **/
 #define CAR_WIDTH 2.0f
@@ -423,7 +424,7 @@ int generateCircle(float radius, int subdiv, vec4 color){
 	float step = (360.0/subdiv)*(M_PI/180.0);
 	printf("step: %f\n", step);
 	
-	int totalverts = subdiv+15;//ceil(subdiv/2.0)*subdiv ;
+	int totalverts = 360;//ceil(subdiv/2.0)*subdiv ;
 	printf("totalVerts: %d\n", totalverts);
 	if(circle_verts){
 		delete[] circle_verts;
@@ -438,11 +439,10 @@ int generateCircle(float radius, int subdiv, vec4 color){
 
 	/* POSITION VERTICES */
 	float a=0, x=0.0,y=0.0,z=0.0;
-	int vert_count = 1;
 	// initial point at origin
 	circle_verts[0] = vec4(0.0f,0.0f,0.0f,1.0);
-
-	for (int i=0;i<=totalverts;i++)
+	int vert_count = 1;
+	for (int i=0;i<totalverts;i++)
 	{
 		float angle = i * 2 * M_PI/totalverts;
 		x = cos(angle) * radius;
@@ -462,15 +462,15 @@ int generateCircle(float radius, int subdiv, vec4 color){
 }
 
 
-
-
-
 #define CAR_SPEED 0.1f
 void my_timer (int v)
 {
 	GLfloat txBeforeMove = 0.0f;
 	GLfloat tzBeforeMove = 0.0f;
 	if (drivingForward) {
+		// handle rotating wheels forward
+		wheelRotation = wheelRotation += CAR_SPEED;
+		if (wheelRotation>360) wheelRotation-=360;
 
 		if (wheelsTurned > 0) // TURNING LEFT
 		{
@@ -502,10 +502,6 @@ void my_timer (int v)
 				tz = tzBeforeMove;
 				drivingForward = false;
 			}
-		
-	
-		printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
-		//printf("tz: %f, tx: %f\n", tz, tx);
 	}
 
 	if (drivingBackward) {
@@ -522,7 +518,6 @@ void my_timer (int v)
 			}
 		}
 		if (wheelsTurned < 0) // WHEELS TURNED RIGHT
-
 		{
 			ry += (0.5 - (wheelsTurned*0.4));
 			carHeading = (ry*M_PI)/180;
@@ -532,6 +527,8 @@ void my_timer (int v)
 			}
 		}
 	}
+	//printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
+	//printf("tz: %f, tx: %f\n", tz, tx);
 	glutPostRedisplay();
 	glutTimerFunc(1000/v, my_timer, v);
 }
@@ -645,7 +642,7 @@ void init() {
 	/** WHEEL 
 	/*********************************************************/
 	// generate vertices for head 
-	circlevertcount = generateCircle(5.5, 30, vec4(1.0, 1.0, 1.0, 1.0));
+	circlevertcount = generateCircle(0.9, 30, vec4(1.0, 1.0, 1.0, 1.0));
 
 	glBindVertexArray( vao[WHEEL] );
 	glGenBuffers( 2, &vbo[WHEEL_VERTS] );
@@ -704,7 +701,7 @@ void display(void)
 
 	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	cameraMatrix = cameraMatrix * RotateY(cameraRotation);
-	allWheelsMatrix = cameraMatrix;
+	allWheelsMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	wholeCarMatrix = cameraMatrix  * RotateX(rx);
 	wholeCarMatrix = cameraMatrix  * RotateY(ry);
@@ -755,11 +752,43 @@ void display(void)
 	glBindVertexArray( vao[EYE] );
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
-	/* draw a wheel */
-	allWheelsMatrix = wholeCarMatrix * Translate(0, 4.5, -1.0);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, allWheelsMatrix);
+	allWheelsMatrix = wholeCarMatrix;
+	//allWheelsMatrix = allWheelsMatrix * RotateX(wheelRotation);
+
+	/* draw a wheel - FRONT LEFT */
+	mat4 frontLeft = allWheelsMatrix;
+	frontLeft = frontLeft * Translate(1.05, -1.0, -0.7);
+	frontLeft = frontLeft * RotateX(wheelRotation*5);
+	frontLeft = frontLeft * RotateY(90);
+	
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
 	glBindVertexArray( vao[WHEEL] );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the sphere
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+
+	/* draw a wheel - FRONT RIGHT */
+	//allWheelsMatrix = wholeCarMatrix;
+	mat4 frontRight = allWheelsMatrix;
+	frontRight = frontRight * Translate(-1.05, -1.0, -0.7);
+	frontRight = frontRight * RotateY(90);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+
+	/* draw a wheel - BACK LEFT */
+	mat4 backLeft = allWheelsMatrix;
+	backLeft = backLeft * Translate(1.05, -1.0, 0.7 - (CAR_LENGTH));
+	backLeft = backLeft * RotateY(90);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+
+	/* draw a wheel - BACK RIGHT */
+	mat4 backRight = allWheelsMatrix;
+	backRight = backRight * Translate(-1.05, -1.0, 0.7 - (CAR_LENGTH));
+	backRight = backRight * RotateY(90);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 
 	/* draw stage */
 	mv = cameraMatrix;
