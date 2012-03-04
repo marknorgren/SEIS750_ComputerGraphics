@@ -62,7 +62,7 @@
   <ItemGroup>
     <ClCompile Include="InitShader.cpp" />
     <ClCompile Include="matrix_stack.cpp" />
-    <ClCompile Include="transform-example.cpp" />
+    <ClCompile Include="assignment1.cpp" />
     <ClCompile Include="wheel.cpp" />
   </ItemGroup>
   <ItemGroup>

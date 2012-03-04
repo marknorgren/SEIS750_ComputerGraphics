@@ -1,5 +1,8 @@
 /*
-example implementation of the transformation in-class exercise
+* SEIS750 Computer Graphics
+* Assignment 2 
+* Mark Norgren
+* March 2012
 **/
 
 #include <GL/Angel.h>
@@ -11,13 +14,9 @@ example implementation of the transformation in-class exercise
 //store window width and height
 int ww=1200, wh=800;
 
-
-
 //these are the extra variables needed for the exercise
 GLfloat tx, ty, tz;
 GLfloat rx, ry, rz;
-
-
 
 //our modelview and perspective matrices
 mat4 mv, p;
@@ -50,13 +49,12 @@ GLfloat wheelRotation = 0.0f;
 #define STAGE_WIDTH 100.0f
 #define STAGE_DEPTH 100.0f
 
-
-
 enum VAO_OBJECTS
 {
 	CUBE,
 	CAR,
 	WHEEL,
+	HUBCAP,
 	HEAD,
 	EYE,
 	STAGE,
@@ -71,6 +69,8 @@ enum VBO_OBJECTS
 	CAR_COLORS,
 	WHEEL_VERTS,
 	WHEEL_COLORS,
+	HUBCAP_VERTS,
+	HUBCAP_COLORS,
 	HEAD_VERTS,
 	HEAD_COLORS,
 	EYE_VERTS,
@@ -80,158 +80,6 @@ enum VBO_OBJECTS
 	NUMBER_OF_VBO_OBJECTS
 };
 
-//need some arrays to store cube attributes
-GLuint vao[NUMBER_OF_VBO_OBJECTS];
-GLuint vbo[NUMBER_OF_VBO_OBJECTS];
-
-
-vec4 stageVerts[6];
-vec4 stageColors[6];
-
-void generateStage() {
-	for(int i=0; i<6; i++){
-		stageColors[i] = vec4(0.5, 0.5, 0.5, 1.0); //front
-	}
-	stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
-	stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
-	stageVerts[2] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
-	stageVerts[3] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
-	stageVerts[4] = vec4((STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
-	stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
-}
-
-/** CAR OBJECT **/
-vec4 carVerts[36];
-vec4 carColors[36];
-void generateCar() {
-	for(int i=0; i<6; i++){
-		carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //front
-	}
-	carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
-	carVerts[1] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		0.0f, 1.0);
-	carVerts[2] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		0.0f, 1.0);
-	carVerts[3] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		0.0f, 1.0);
-	carVerts[4] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	0.0f, 1.0);
-	carVerts[5] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
-
-	for(int i=6; i<12; i++){
-		carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //back, black
-	}
-	//				X						Y					Z
-	carVerts[6] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
-	carVerts[7] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
-	carVerts[8] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
-	carVerts[9] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
-	carVerts[10] = vec4(CAR_WIDTH/2,	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
-	carVerts[11] = vec4(-(CAR_WIDTH/2), -(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
-
-	for(int i=12; i<18; i++){
-		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //right
-	}
-	carVerts[12] = vec4(1.0f, 1.0f,		0.0f,			1.0);
-	carVerts[13] = vec4(1.0f, -1.0f,	0.0f,			1.0);
-	carVerts[14] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
-	carVerts[15] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
-	carVerts[16] = vec4(1.0f, 1.0f,		-(CAR_LENGTH),	1.0);
-	carVerts[17] = vec4(1.0f, 1.0f,		0.0f,			1.0);
-
-	for(int i=18; i<24; i++){
-		carColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //left
-	}
-	carVerts[18] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
-	carVerts[19] = vec4(-1.0f, -1.0f,	-(CAR_LENGTH),		1.0);
-	carVerts[20] = vec4(-1.0f, -1.0f,	0.0f,				1.0);
-	carVerts[21] = vec4(-1.0f, -1.0f,	0.0f,				1.0);
-	carVerts[22] = vec4(-1.0f, 1.0f,	0.0f,				1.0);
-	carVerts[23] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
-
-	for(int i=24; i<30; i++){
-		carColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
-	}
-	carVerts[24] = vec4(1.0f, 1.0f, 0.0f, 1.0);
-	carVerts[25] = vec4(1.0f, 1.0f, -(CAR_LENGTH), 1.0);
-	carVerts[26] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
-	carVerts[27] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
-	carVerts[28] = vec4(-1.0f, 1.0f, 0.0f, 1.0);
-	carVerts[29] = vec4(1.0f, 1.0f, 0.0f, 1.0);
-
-	for(int i=30; i<36; i++){
-		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
-	}
-	carVerts[30] = vec4(1.0f, -1.0f, -5.0f, 1.0);
-	carVerts[31] = vec4(1.0f, -1.0f, 0.0f, 1.0);
-	carVerts[32] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
-	carVerts[33] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
-	carVerts[34] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
-	carVerts[35] = vec4(1.0f, -1.0f, -5.0f, 1.0);
-}
-
-
-/** CUBE OBJECT **/
-vec4 cubeVerts[36];
-vec4 cubeColors[36];
-void generateCube(){
-	for(int i=0; i<6; i++){
-		cubeColors[i] = vec4(0.0, 1.0, 1.0, 1.0); //front
-	}
-	cubeVerts[0] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[1] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[2] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[3] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[4] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[5] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-
-
-	for(int i=6; i<12; i++){
-		cubeColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //back
-	}
-	cubeVerts[6] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[7] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[8] = vec4(1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[9] = vec4(1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[10] = vec4(1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[11] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
-
-	for(int i=12; i<18; i++){
-		cubeColors[i] = vec4(1.0, 1.0, 0.0, 1.0); //left
-	}
-	cubeVerts[12] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[13] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[14] = vec4(1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[15] = vec4(1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[16] = vec4(1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[17] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-
-	for(int i=18; i<24; i++){
-		cubeColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //right
-	}
-	cubeVerts[18] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[19] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[20] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[21] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[22] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[23] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-
-	for(int i=24; i<30; i++){
-		cubeColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
-	}
-	cubeVerts[24] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[25] = vec4(1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[26] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[27] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
-	cubeVerts[28] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
-	cubeVerts[29] = vec4(1.0f, 1.0f, 1.0f, 1.0);
-
-	for(int i=30; i<36; i++){
-		cubeColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
-	}
-	cubeVerts[30] = vec4(1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[31] = vec4(1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[32] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[33] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
-	cubeVerts[34] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
-	cubeVerts[35] = vec4(1.0f, -1.0f, -1.0f, 1.0);
-}
 
 void Keyboard(unsigned char key, int x, int y) {
 	/*exit when the escape key is pressed*/
@@ -370,8 +218,171 @@ void special(int key, int x, int y){
 	glutPostRedisplay();
 }
 
+//need some arrays to store cube attributes
+GLuint vao[NUMBER_OF_VBO_OBJECTS];
+GLuint vbo[NUMBER_OF_VBO_OBJECTS];
+
+vec4 stageVerts[6];
+vec4 stageColors[6];
+
+void generateStage() {
+	for(int i=0; i<6; i++){
+		stageColors[i] = vec4(0.5, 0.5, 0.5, 1.0); //front
+	}
+	stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
+	stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+	stageVerts[2] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+	stageVerts[3] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+	stageVerts[4] = vec4((STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
+	stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
+}
+
+/** CAR OBJECT **/
+vec4 carVerts[36];
+vec4 carColors[36];
+void generateCar() {
+	for(int i=0; i<6; i++){
+		carColors[i] = vec4(1.0, 1.0, 0.0, 1.0); //front
+	}
+	carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
+	carVerts[1] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		0.0f, 1.0);
+	carVerts[2] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		0.0f, 1.0);
+	carVerts[3] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		0.0f, 1.0);
+	carVerts[4] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	0.0f, 1.0);
+	carVerts[5] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
+
+	for(int i=6; i<12; i++){
+		carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //back, black
+	}
+	//				X						Y					Z
+	carVerts[6] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
+	carVerts[7] = vec4(-(CAR_WIDTH/2),	CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
+	carVerts[8] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
+	carVerts[9] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		-(CAR_LENGTH), 1.0);
+	carVerts[10] = vec4(CAR_WIDTH/2,	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
+	carVerts[11] = vec4(-(CAR_WIDTH/2), -(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
+
+	for(int i=12; i<18; i++){
+		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //right
+	}
+	carVerts[12] = vec4(1.0f, 1.0f,		0.0f,			1.0);
+	carVerts[13] = vec4(1.0f, -1.0f,	0.0f,			1.0);
+	carVerts[14] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
+	carVerts[15] = vec4(1.0f, -1.0f,	-(CAR_LENGTH),	1.0);
+	carVerts[16] = vec4(1.0f, 1.0f,		-(CAR_LENGTH),	1.0);
+	carVerts[17] = vec4(1.0f, 1.0f,		0.0f,			1.0);
+
+	for(int i=18; i<24; i++){
+		carColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //left
+	}
+	carVerts[18] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
+	carVerts[19] = vec4(-1.0f, -1.0f,	-(CAR_LENGTH),		1.0);
+	carVerts[20] = vec4(-1.0f, -1.0f,	0.0f,				1.0);
+	carVerts[21] = vec4(-1.0f, -1.0f,	0.0f,				1.0);
+	carVerts[22] = vec4(-1.0f, 1.0f,	0.0f,				1.0);
+	carVerts[23] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
+
+	for(int i=24; i<30; i++){
+		carColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
+	}
+	carVerts[24] = vec4(1.0f, 1.0f, 0.0f, 1.0);
+	carVerts[25] = vec4(1.0f, 1.0f, -(CAR_LENGTH), 1.0);
+	carVerts[26] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
+	carVerts[27] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
+	carVerts[28] = vec4(-1.0f, 1.0f, 0.0f, 1.0);
+	carVerts[29] = vec4(1.0f, 1.0f, 0.0f, 1.0);
+
+	for(int i=30; i<36; i++){
+		carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
+	}
+	carVerts[30] = vec4(1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[31] = vec4(1.0f, -1.0f, 0.0f, 1.0);
+	carVerts[32] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
+	carVerts[33] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
+	carVerts[34] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
+	carVerts[35] = vec4(1.0f, -1.0f, -5.0f, 1.0);
+}
+
+/** TRIANLE OBJECT **/
+vec4 triangleVerts[3];
+vec4 triangleColors[3];
+void generateTriangle(){
+	for(int i=0;i<3;i++){
+		triangleColors[i] = vec4(1.0f,0.0f,0.0f,1.0);
+	}
+	triangleVerts[0] = vec4(-0.45f,-0.45f,0.0f,1.0);
+	triangleVerts[1] = vec4(0.0f,0.45f,0.0f,1.0);
+	triangleVerts[2] = vec4(0.45,-0.45f,0.0f,1.0);
+}
+
+/** CUBE OBJECT **/
+vec4 cubeVerts[36];
+vec4 cubeColors[36];
+void generateCube(){
+	for(int i=0; i<6; i++){
+		cubeColors[i] = vec4(0.0, 1.0, 1.0, 1.0); //front
+	}
+	cubeVerts[0] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[1] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[2] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[3] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[4] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[5] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+
+
+	for(int i=6; i<12; i++){
+		cubeColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //back
+	}
+	cubeVerts[6] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[7] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[8] = vec4(1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[9] = vec4(1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[10] = vec4(1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[11] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+
+	for(int i=12; i<18; i++){
+		cubeColors[i] = vec4(1.0, 1.0, 0.0, 1.0); //left
+	}
+	cubeVerts[12] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[13] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[14] = vec4(1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[15] = vec4(1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[16] = vec4(1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[17] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+
+	for(int i=18; i<24; i++){
+		cubeColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //right
+	}
+	cubeVerts[18] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[19] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[20] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[21] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[22] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[23] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
+
+	for(int i=24; i<30; i++){
+		cubeColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
+	}
+	cubeVerts[24] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[25] = vec4(1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[26] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[27] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
+	cubeVerts[28] = vec4(-1.0f, 1.0f, 1.0f, 1.0);
+	cubeVerts[29] = vec4(1.0f, 1.0f, 1.0f, 1.0);
+
+	for(int i=30; i<36; i++){
+		cubeColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
+	}
+	cubeVerts[30] = vec4(1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[31] = vec4(1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[32] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[33] = vec4(-1.0f, -1.0f, 1.0f, 1.0);
+	cubeVerts[34] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
+	cubeVerts[35] = vec4(1.0f, -1.0f, -1.0f, 1.0);
+}
+
 /*****************************************************/
-/* HEAD OBJECT */
+/* HEAD,EYES - SPHERE OBJECT */
 /*****************************************************/
 int spherevertcount;
 vec4* sphere_verts;
@@ -496,7 +507,11 @@ void my_timer (int v)
 			tzBeforeMove = tz;
 			tz += CAR_SPEED * cos(carHeading);
 			tx += CAR_SPEED * sin(carHeading);
-			if (tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2)) // if next position puts car outside of stage area rollback update, stop moving
+			if (	
+					(tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2))
+				||
+					(tz < -((STAGE_DEPTH-5)/2) || tz > ((STAGE_DEPTH-5)/2))
+				) // if next position puts car outside of stage area rollback update, stop moving
 			{
 				tx = txBeforeMove;
 				tz = tzBeforeMove;
@@ -505,9 +520,9 @@ void my_timer (int v)
 	}
 
 	if (drivingBackward) {
-		tz -= CAR_SPEED * cos(carHeading);
-		tx -= CAR_SPEED * sin(carHeading);
-
+		// handle rotating wheels backward
+		wheelRotation = wheelRotation -= CAR_SPEED;
+		if (wheelRotation<0) wheelRotation+=360;
 		if (wheelsTurned > 0) // WHEELS TURNED LEFT
 		{	
 			ry -= (0.5 + (wheelsTurned*0.4));
@@ -526,6 +541,21 @@ void my_timer (int v)
 				ry += 360;
 			}
 		}
+		// save current position
+			txBeforeMove = tx;
+			tzBeforeMove = tz;
+			tz -= CAR_SPEED * cos(carHeading);
+			tx -= CAR_SPEED * sin(carHeading);
+			if (	
+					(tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2))
+				||
+					(tz < -((STAGE_DEPTH-5)/2) || tz > ((STAGE_DEPTH-5)/2))
+				) // if next position puts car outside of stage area rollback update, stop moving
+			{
+				tx = txBeforeMove;
+				tz = tzBeforeMove;
+				drivingBackward = false;
+			}
 	}
 	//printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
 	//printf("tz: %f, tx: %f\n", tz, tx);
@@ -641,7 +671,7 @@ void init() {
 	/*********************************************************
 	/** WHEEL 
 	/*********************************************************/
-	// generate vertices for head 
+	// generate vertices 
 	circlevertcount = generateCircle(0.9, 30, vec4(1.0, 1.0, 1.0, 1.0));
 
 	glBindVertexArray( vao[WHEEL] );
@@ -655,6 +685,27 @@ void init() {
 	//and now our colors for each vertex
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[WHEEL_COLORS] );
 	glBufferData( GL_ARRAY_BUFFER, circlevertcount*sizeof(vec4), circle_colors, GL_STATIC_DRAW );
+	vColor = glGetAttribLocation(program, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	/*********************************************************
+	/** WHEEL HUBCAP 
+	/*********************************************************/
+	// generate vertices
+	generateTriangle();
+
+	glBindVertexArray( vao[HUBCAP] );
+	glGenBuffers( 2, &vbo[HUBCAP_VERTS] );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[HUBCAP_VERTS] );
+	glBufferData( GL_ARRAY_BUFFER, 3*sizeof(vec4), triangleVerts, GL_STATIC_DRAW);
+	vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//and now our colors for each vertex
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[HUBCAP_COLORS] );
+	glBufferData( GL_ARRAY_BUFFER, 3*sizeof(vec4), triangleColors, GL_STATIC_DRAW );
 	vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
 	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -753,42 +804,64 @@ void display(void)
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 	allWheelsMatrix = wholeCarMatrix;
-	//allWheelsMatrix = allWheelsMatrix * RotateX(wheelRotation);
 
 	/* draw a wheel - FRONT LEFT */
 	mat4 frontLeft = allWheelsMatrix;
-	frontLeft = frontLeft * Translate(1.05, -1.0, -0.7);
-	frontLeft = frontLeft * RotateX(wheelRotation*5);
+	frontLeft = frontLeft * Translate(1.55, -1.0, -0.7);
+	frontLeft = frontLeft * RotateX(wheelRotation*20);
 	frontLeft = frontLeft * RotateY(90);
 	
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	/* HUBCAP */
+	frontLeft = frontLeft * Translate(0.0,0.0,0.1);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
+	glBindVertexArray( vao[HUBCAP] );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw a wheel - FRONT RIGHT */
 	//allWheelsMatrix = wholeCarMatrix;
 	mat4 frontRight = allWheelsMatrix;
 	frontRight = frontRight * Translate(-1.05, -1.0, -0.7);
+	frontRight = frontRight * RotateX(wheelRotation*20);
 	frontRight = frontRight * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	/* HUBCAP */
+	frontRight = frontRight * Translate(0.0,0.0,-0.1);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
+	glBindVertexArray( vao[HUBCAP] );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );    
 
 	/* draw a wheel - BACK LEFT */
 	mat4 backLeft = allWheelsMatrix;
 	backLeft = backLeft * Translate(1.05, -1.0, 0.7 - (CAR_LENGTH));
+	backLeft = backLeft * RotateX(wheelRotation*20);
 	backLeft = backLeft * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	/* HUBCAP */
+	backLeft = backLeft * Translate(0.0,0.0,0.1);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
+	glBindVertexArray( vao[HUBCAP] );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw a wheel - BACK RIGHT */
 	mat4 backRight = allWheelsMatrix;
 	backRight = backRight * Translate(-1.05, -1.0, 0.7 - (CAR_LENGTH));
+	backRight = backRight * RotateX(wheelRotation*20);
 	backRight = backRight * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	/* HUBCAP */
+	backRight = backRight * Translate(0.0,0.0,-0.1);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
+	glBindVertexArray( vao[HUBCAP] );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw stage */
 	mv = cameraMatrix;
