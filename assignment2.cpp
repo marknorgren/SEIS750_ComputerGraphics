@@ -465,11 +465,12 @@ int generateCircle(float radius, int subdiv, vec4 color){
 		vert_count++;
 	}
 
-
+#if DEBUG
 	for (int i=0;i<=totalverts;i++)
 	{
 		printf("index,%d,x,%f,y,%f,z,%f\n", i, circle_verts[i][0], circle_verts[i][1], circle_verts[i][2]); 
 	}
+#endif
 
 	return totalverts;
 }
@@ -482,7 +483,7 @@ int generateTireTread(float radius, int subdiv, vec4 color){
 	float step = (360.0/subdiv)*(M_PI/180.0);
 	printf("step: %f\n", step);
 	
-	int totalverts = (360 * 2)+1; //two circles, connecting with triangle fan
+	int totalverts = (360 * 2); //two circles, connecting with triangle fan
 	printf("totalVerts: %d\n", totalverts);
 	if(tireTread_verts){
 		delete[] tireTread_verts;
@@ -498,23 +499,30 @@ int generateTireTread(float radius, int subdiv, vec4 color){
 	/* POSITION VERTICES */
 	float a=0, x=0.0,y=0.0,z=0.0;
 	// initial point at origin
-	tireTread_verts[0] = vec4(0.0f,0.0f,0.0f,1.0);
-	int vert_count = 1;
+	//tireTread_verts[0] = vec4(0.0f,0.0f,0.0f,1.0);
+	int vert_count = 0;
 	int i=0;
-	for (i=0;i<totalverts;i+=2)
+	int angleIndex = 0;
+	vec4 firstOne;
+	for (i=0;i<360;i++)
 	{
-		float angle = i * 2 * M_PI/totalverts;
+		float angle = angleIndex * 2 * M_PI/totalverts;
+		angleIndex++;
 		x = cos(angle) * radius;
 		y = sin(angle) * radius;
 		z = 0.0f;
+		
 		tireTread_verts[vert_count] = vec4(x, y, z, 1.0);
+		if (i==0) firstOne = vec4(x, y, z, 1.0);
 		z = 1.0f;
-		tireTread_verts[vert_count+1] = vec4(x, y, z, 1.0);
+		vert_count++;
+		tireTread_verts[vert_count] = vec4(x, y, z, 1.0);
 		vert_count++;
 	}
-	tireTread_verts[i] = vec4(0.0f,0.0f,0.0f,1.0);
 
-	for (int i=0;i<=totalverts;i+=2)
+	tireTread_verts[vert_count] = firstOne;
+
+	for (int i=0;i<=totalverts;i++)
 	{
 		printf("index,%d,x,%f,y,%f,z,%f\n", i, tireTread_verts[i][0], tireTread_verts[i][1], tireTread_verts[i][2]); 
 	}
