@@ -437,7 +437,7 @@ int generateCircle(float radius, int subdiv, vec4 color){
 	float step = (360.0/subdiv)*(M_PI/180.0);
 	printf("step: %f\n", step);
 	
-	int totalverts = 360+5;//ceil(subdiv/2.0)*subdiv ;
+	int totalverts = 360+2;//ceil(subdiv/2.0)*subdiv ;
 	printf("totalVerts: %d\n", totalverts);
 	if(circle_verts){
 		delete[] circle_verts;
@@ -455,17 +455,27 @@ int generateCircle(float radius, int subdiv, vec4 color){
 	// initial point at origin
 	circle_verts[0] = vec4(0.0f,0.0f,0.0f,1.0);
 	int vert_count = 1;
-	for (int i=0;i<totalverts;i++)
+	vec4 firstOne;
+	for (int i=0;i<360;i++)
 	{
-		float angle = i * 2 * M_PI/totalverts;
+		float angle = i * 2 * M_PI/360;
 		x = cos(angle) * radius;
 		y = sin(angle) * radius;
 		z = 0.0f;
 		circle_verts[vert_count] = vec4(x, y, z, 1.0);
+		if (i==0) 
+			{
+				firstOne = vec4(x, y, z, 1.0);
+				printf("firstOne: %f,%f,%f\n", x, y, z);
+		}
 		vert_count++;
 	}
 
-#if DEBUG
+	circle_verts[vert_count] = firstOne;
+	vert_count++;
+	circle_verts[vert_count] = vec4(0.0f,0.0f,0.0f,1.0);
+
+#if 1
 	for (int i=0;i<=totalverts;i++)
 	{
 		printf("index,%d,x,%f,y,%f,z,%f\n", i, circle_verts[i][0], circle_verts[i][1], circle_verts[i][2]); 
@@ -483,7 +493,7 @@ int generateTireTread(float radius, int subdiv, vec4 color){
 	float step = (360.0/subdiv)*(M_PI/180.0);
 	printf("step: %f\n", step);
 	
-	int totalverts = (360 * 2); //two circles, connecting with triangle fan
+	int totalverts = (360 * 2)+2; //two circles, connecting with triangle fan
 	printf("totalVerts: %d\n", totalverts);
 	if(tireTread_verts){
 		delete[] tireTread_verts;
@@ -493,7 +503,7 @@ int generateTireTread(float radius, int subdiv, vec4 color){
 	tireTread_verts = new vec4[totalverts];
 	tireTread_colors = new vec4[totalverts];
 	for(int i=0; i<totalverts; i++){
-		tireTread_colors[i] = color; //white
+		tireTread_colors[i] = color;
 	}
 
 	/* POSITION VERTICES */
@@ -504,9 +514,10 @@ int generateTireTread(float radius, int subdiv, vec4 color){
 	int i=0;
 	int angleIndex = 0;
 	vec4 firstOne;
+	vec4 firstOneOtherHalf;
 	for (i=0;i<360;i++)
 	{
-		float angle = angleIndex * 2 * M_PI/totalverts;
+		float angle = angleIndex * 2 * M_PI/360;
 		angleIndex++;
 		x = cos(angle) * radius;
 		y = sin(angle) * radius;
@@ -517,15 +528,23 @@ int generateTireTread(float radius, int subdiv, vec4 color){
 		z = 1.0f;
 		vert_count++;
 		tireTread_verts[vert_count] = vec4(x, y, z, 1.0);
+		if (i==0) firstOneOtherHalf = vec4(x, y, z, 1.0);
 		vert_count++;
 	}
-
+	
+	/* finish up triangle strips with firsts */
+	tireTread_verts[vert_count] = firstOne;
+	vert_count++;
+	tireTread_verts[vert_count] = firstOneOtherHalf;
+	vert_count++;
 	tireTread_verts[vert_count] = firstOne;
 
+#if DEBUG
 	for (int i=0;i<=totalverts;i++)
 	{
 		printf("index,%d,x,%f,y,%f,z,%f\n", i, tireTread_verts[i][0], tireTread_verts[i][1], tireTread_verts[i][2]); 
 	}
+#endif
 
 	return totalverts;
 }
@@ -763,7 +782,7 @@ void init() {
 
 	//and now our colors for each vertex
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[TIRETREAD_COLORS] );
-	glBufferData( GL_ARRAY_BUFFER, circlevertcount*sizeof(vec4), tireTread_colors, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, tireTreadvertcount*sizeof(vec4), tireTread_colors, GL_STATIC_DRAW );
 	vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
 	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -884,15 +903,17 @@ void display(void)
 
 	allWheelsMatrix = wholeCarMatrix;
 
-	/* draw a wheel - FRONT LEFT */
+	/**************************************************************************************** draw a wheel - FRONT LEFT */
 	mat4 frontLeft = allWheelsMatrix;
-	frontLeft = frontLeft * Translate(1.4, -1.0, -0.7);
+	frontLeft = frontLeft * Translate(2.0, -1.0, -0.7);
 	frontLeft = frontLeft * RotateY(90+(wheelsTurned*5));
 	frontLeft = frontLeft * RotateZ(wheelRotation*20);
 	
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
+
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	
 	/* HUBCAP */
 	frontLeft = frontLeft * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
@@ -900,16 +921,16 @@ void display(void)
 	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw tire tread - FRONT LEFT */
-	mat4 frontLeftTread = allWheelsMatrix;
-	frontLeftTread = frontLeftTread * Translate(2.4, -1.0, -0.7);
+	mat4 frontLeftTread = frontLeft;
+	frontLeftTread = frontLeftTread * Translate(0.0, 0.0, -1.0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeftTread);
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
 
-	/* draw a wheel - FRONT RIGHT */
+	/**************************************************************************************** draw a wheel - FRONT RIGHT */
 	//allWheelsMatrix = wholeCarMatrix;
 	mat4 frontRight = allWheelsMatrix;
-	frontRight = frontRight * Translate(-1.4, -1.0, -0.7);
+	frontRight = frontRight * Translate(-2.0, -1.0, -0.7);
 	frontRight = frontRight * RotateY(90+(wheelsTurned*5));
 	frontRight = frontRight * RotateZ(wheelRotation*20);
 	
@@ -920,11 +941,18 @@ void display(void)
 	frontRight = frontRight * Translate(0.0,0.0,-0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 	glBindVertexArray( vao[HUBCAP] );
-	glDrawArrays( GL_TRIANGLES, 0, 3 );    
+	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
-	/* draw a wheel - BACK LEFT */
+	/* draw tire tread - FRONT RIGHT */
+	mat4 frontRightTread = frontRight;
+	frontRightTread = frontRightTread * Translate(0.0, 0.0, 0.0);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRightTread);
+	glBindVertexArray( vao[TIRETREAD] );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
+
+	/**************************************************************************************** draw a wheel - BACK LEFT */
 	mat4 backLeft = allWheelsMatrix;
-	backLeft = backLeft * Translate(1.05, -1.0, 0.7 - (CAR_LENGTH));
+	backLeft = backLeft * Translate(2.05, -1.0, 0.7 - (CAR_LENGTH));
 	backLeft = backLeft * RotateX(wheelRotation*20);
 	backLeft = backLeft * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
@@ -934,11 +962,18 @@ void display(void)
 	backLeft = backLeft * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
 	glBindVertexArray( vao[HUBCAP] );
-	glDrawArrays( GL_TRIANGLES, 0, 3 );   
+	glDrawArrays( GL_TRIANGLES, 0, 3 ); 
 
-	/* draw a wheel - BACK RIGHT */
+	/* draw tire tread - BACK LEFT */
+	mat4 backLeftTread = backLeft;
+	backLeftTread = backLeftTread * Translate(0.0, 0.0, -1.0);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeftTread);
+	glBindVertexArray( vao[TIRETREAD] );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
+
+	/**************************************************************************************** draw a wheel - BACK RIGHT */
 	mat4 backRight = allWheelsMatrix;
-	backRight = backRight * Translate(-1.05, -1.0, 0.7 - (CAR_LENGTH));
+	backRight = backRight * Translate(-2.0, -1.0, 0.7 - (CAR_LENGTH));
 	backRight = backRight * RotateX(wheelRotation*20);
 	backRight = backRight * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
@@ -949,6 +984,13 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 	glBindVertexArray( vao[HUBCAP] );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );   
+
+	/* draw tire tread - BACK RIGHT */
+	mat4 backRightTread = backRight;
+	backRightTread = backRightTread * Translate(0.0, 0.0, 0.0);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRightTread);
+	glBindVertexArray( vao[TIRETREAD] );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
 
 	/* draw stage */
 	mv = cameraMatrix;
