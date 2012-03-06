@@ -770,7 +770,7 @@ void init() {
 	/** TIRE TREAD 
 	/*********************************************************/
 	// generate vertices 
-	tireTreadvertcount = generateTireTread(0.9, 30, vec4(0.0, 0.0, 0.0, 1.0));
+	tireTreadvertcount = generateTireTread(1.0, 30, vec4(0.0, 0.0, 0.0, 1.0));
 
 	glBindVertexArray( vao[TIRETREAD] );
 	glGenBuffers( 2, &vbo[TIRETREAD_VERTS] );
@@ -904,12 +904,20 @@ void display(void)
 	allWheelsMatrix = wholeCarMatrix;
 
 	/**************************************************************************************** draw a wheel - FRONT LEFT */
+	
+	
+	
 	mat4 frontLeft = allWheelsMatrix;
 	frontLeft = frontLeft * Translate(2.0, -1.0, -0.7);
 	frontLeft = frontLeft * RotateY(90+(wheelsTurned*5));
 	frontLeft = frontLeft * RotateZ(wheelRotation*20);
-	
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+
+	mat4 frontLeftInner = frontLeft;
+	frontLeftInner = frontLeftInner * Translate(0.0, 0.0, -0.9);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeftInner);
 
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
