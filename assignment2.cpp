@@ -846,6 +846,7 @@ void display(void)
 	mat4 headMatrix;
 	mat4 frontWheelsMatrix;
 	mat4 allWheelsMatrix;
+	mat4 inner;
 
 
 	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
@@ -915,12 +916,12 @@ void display(void)
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 
+	/* inner wheel */
 	mat4 frontLeftInner = frontLeft;
 	frontLeftInner = frontLeftInner * Translate(0.0, 0.0, -0.9);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeftInner);
-
 	glBindVertexArray( vao[WHEEL] );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    
 	
 	/* HUBCAP */
 	frontLeft = frontLeft * Translate(0.0,0.0,0.1);
@@ -945,6 +946,13 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+
+	/* inner wheel */
+	inner = frontRight;
+	inner = inner * Translate(0.0, 0.0, 0.9);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );  
 	/* HUBCAP */
 	frontRight = frontRight * Translate(0.0,0.0,-0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
@@ -966,6 +974,12 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	/* inner wheel */
+	inner = backLeft;
+	inner = inner * Translate(0.0, 0.0, -0.9);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );
 	/* HUBCAP */
 	backLeft = backLeft * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
@@ -987,6 +1001,12 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 	glBindVertexArray( vao[WHEEL] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
+	/* inner wheel */
+	inner = backRight;
+	inner = inner * Translate(0.0, 0.0, 0.9);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
+	glBindVertexArray( vao[WHEEL] );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );
 	/* HUBCAP */
 	backRight = backRight * Translate(0.0,0.0,-0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
