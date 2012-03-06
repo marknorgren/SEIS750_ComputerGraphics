@@ -21,7 +21,7 @@ GLfloat rx, ry, rz;
 mat4 mv, p;
 
 //used for zooming
-GLfloat cameraPosition_Dolly = 45.0f;
+GLfloat cameraPosition_Dolly = 90.0f;
 //used for dollying
 GLfloat cameraZoom_FOV = 90.0f;
 // camera rotation
@@ -1031,7 +1031,7 @@ void display(void)
 	/* camera position */
 	//cameraRotation = 
 	mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	p = Perspective(90.0, (float)ww/(float)wh, 1.0, 200.0);
+	p = Perspective(45.0, (float)ww/(float)wh, 1.0, 200.0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
@@ -1046,7 +1046,7 @@ void reshape(int width, int height){
 	ww= width;
 	wh = height;
 	//field of view angle, aspect ratio, closest distance from camera to object, largest distanec from camera to object
-	p = Perspective(90.0, (float)width/(float)height, 1.0, 150.0);
+	p = Perspective(45.0, (float)width/(float)height, 1.0, 150.0);
 
 	glViewport( 0, 0, width, height );
 }
