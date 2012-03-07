@@ -848,8 +848,9 @@ void display(void)
 	mat4 allWheelsMatrix;
 	mat4 inner;
 
-
-	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+	// change lookat at - to traslation of car
+	//cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(tx,ty, tz, 1.0), vec4(0, 1, 0, 0.0));
+	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0,0,0, 1.0), vec4(0, 1, 0, 0.0));
 	cameraMatrix = cameraMatrix * RotateY(cameraRotation);
 	allWheelsMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
