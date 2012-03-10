@@ -15,7 +15,10 @@
 int ww=1200, wh=800;
 
 GLfloat tx, ty, tz;
-
+// viewpoint camera lookat point
+vec4 viewPointLookAtPoint = (0.0f, 0.0f, 0.0f, 1.0); //point
+// lookat direction
+vec4 viewPointLookAtDirection = (0.0f, 0.0f, 0.0f, 0.0); //vector
 
 
 GLfloat rx, ry, rz;
@@ -29,6 +32,13 @@ GLfloat cameraPosition_Dolly = 90.0f;
 GLfloat cameraZoom_FOV = 90.0f;
 // camera rotation
 GLfloat cameraRotation = 5.0f;
+
+// camera lookat point
+bool lookAtCenterOfStage = true;
+vec4 cameraLookAtPoint = (0.0f, 0.0f, 0.0f, 1.0);
+// camera zoom
+float fov = 45.0;
+
 
 //and we'll need pointers to our shader variables
 GLuint model_view;
@@ -93,7 +103,8 @@ void Keyboard(unsigned char key, int x, int y) {
 
 	switch(key)
 	{
-		case 's':
+		/************************************************************************************** DOLLY CAMERA */
+		case 'q':
 			{
 				printf("s pressed, cameraPosition_Dolly: %f\n", cameraPosition_Dolly);
 				if (cameraPosition_Dolly < 200) 
@@ -103,7 +114,7 @@ void Keyboard(unsigned char key, int x, int y) {
 				}
 				break;
 			}
-		case 'a':
+		case 'w':
 			{
 				printf("s pressed, cameraPosition_Dolly: %f\n", cameraPosition_Dolly);
 				if (cameraPosition_Dolly > 5) {
@@ -112,7 +123,42 @@ void Keyboard(unsigned char key, int x, int y) {
 				}
 				break;
 			}
+		/************************************************************************************** DOLLY CAMERA */
+
+
+		/************************************************************************************** ZOOM CAMERA */
+		case 'a':
+			{
+				if (fov<170) fov++;
+				break;
+			}
+		case 's':
+			{
+				if (fov>1) fov--;
+				break;
+			}
+		/************************************************************************************** ZOOM CAMERA */
+
+
+		/************************************************************************************** POINT CAMERA AT CAR/CENTER */
 		case 'f':
+			{
+				//toggle look at
+				lookAtCenterOfStage ? lookAtCenterOfStage=false : lookAtCenterOfStage=true;
+				break;
+			}
+
+
+
+		/************************************************************************************** RESET CAMERA */
+		case 'r':
+			{
+				break;
+			}
+
+
+
+		case 'b':
 			{
 				if (cameraRotation < 360) cameraRotation++;
 				else cameraRotation = 0;
@@ -851,9 +897,14 @@ void display(void)
 	mat4 allWheelsMatrix;
 	mat4 inner;
 
-	// change lookat at - to traslation of car
-	//cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(tx,ty, tz, 1.0), vec4(0, 1, 0, 0.0));
-	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0,0,0, 1.0), vec4(0, 1, 0, 0.0));
+	// look at car/center of stage
+	if (lookAtCenterOfStage) 
+		cameraLookAtPoint = vec4(tx, ty, tz, 1.0);
+	else 
+		cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
+
+	cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), cameraLookAtPoint, vec4(0, 1, 0, 0.0));
+	//cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0,0,0, 1.0), vec4(0, 1, 0, 0.0));
 	cameraMatrix = cameraMatrix * RotateY(cameraRotation);
 	allWheelsMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 	mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
@@ -1035,7 +1086,7 @@ void display(void)
 	/* camera position */
 	//cameraRotation = 
 	mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-	p = Perspective(45.0, (float)ww/(float)wh, 1.0, 200.0);
+	p = Perspective(fov, (float)ww/(float)wh, 1.0, 200.0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
