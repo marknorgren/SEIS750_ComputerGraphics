@@ -15,6 +15,9 @@
 int ww=1200, wh=800;
 
 GLfloat tx, ty, tz;
+
+
+
 GLfloat rx, ry, rz;
 
 //modelview and perspective matrices
@@ -475,7 +478,7 @@ int generateCircle(float radius, int subdiv, vec4 color){
 	vert_count++;
 	circle_verts[vert_count] = vec4(0.0f,0.0f,0.0f,1.0);
 
-#if 1
+#if DEBUG
 	for (int i=0;i<=totalverts;i++)
 	{
 		printf("index,%d,x,%f,y,%f,z,%f\n", i, circle_verts[i][0], circle_verts[i][1], circle_verts[i][2]); 
@@ -749,7 +752,7 @@ void init() {
 	/** WHEEL 
 	/*********************************************************/
 	// generate vertices 
-	circlevertcount = generateCircle(0.9, 30, vec4(1.0, 1.0, 1.0, 1.0));
+	circlevertcount = generateCircle(1.0, 30, vec4(1.0, 1.0, 1.0, 1.0));
 
 	glBindVertexArray( vao[WHEEL] );
 	glGenBuffers( 2, &vbo[WHEEL_VERTS] );
