@@ -20,6 +20,9 @@ vec4 viewPointLookAtPoint = (0.0f, 0.0f, 0.0f, 1.0); //point
 // lookat direction
 vec4 viewPointLookAtDirection = (0.0f, 0.0f, 0.0f, 0.0); //vector
 
+vec4 viewPointLookAt_At = (0.0f,0.0f,0.0f,0.0);
+vec4 viewPointLookAt_Eye = (0.0f,0.0f,0.0f,0.0);
+
 // Camera State Machine
 enum state { 
 	STATE_STATIC_CAMERA, 
@@ -629,6 +632,7 @@ enum state {
 	}
 
 #define CAR_SPEED 0.1f
+#define VIEWPOINT_LOOK_AT_DISTANCE 12.0f
 #define WHEEL_TURN_FACTOR 0.1f
 	void my_timer (int v)
 	{
@@ -678,8 +682,11 @@ enum state {
 				if (current_state == STATE_VIEWPOINT_CAMERA)
 				{
 					// update viewPointLookAtPoint
-					viewPointLookAtPoint = vec4((tx+5)*cos(carHeading), (tz+5)*cos(carHeading), 0.0f, 1.0);
-					cameraLookAtPoint = viewPointLookAtDirection;
+					//viewPointLookAtPoint = vec4((tx+5)*cos(carHeading), (tz+5)*cos(carHeading), 0.0f, 1.0);
+					//cameraLookAtPoint = viewPointLookAtDirection;
+
+					viewPointLookAt_Eye = vec4(tx,ty+5,tz, 1.0);
+					viewPointLookAt_At = vec4(tx + (VIEWPOINT_LOOK_AT_DISTANCE*sin(carHeading)), ty, tz + (VIEWPOINT_LOOK_AT_DISTANCE*cos(carHeading)), 1.0);
 				}
 				else cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
 			}
@@ -946,13 +953,22 @@ enum state {
 				cameraLookAtPoint = vec4(tx, ty, tz, 1.0);
 			else 
 				cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
+
+			cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
 			break;
 
 		case STATE_VIEWPOINT_CAMERA:
-
+			cameraLookAtEye = viewPointLookAt_Eye;
+			cameraLookAtPoint = viewPointLookAt_At;
+			printf("cameraLookAtEye: %f,%f,%f\n", cameraLookAtEye.x, cameraLookAtEye.y, cameraLookAtEye.z);
+			printf("cameraLookAtPoint: %f,%f,%f\n", cameraLookAtPoint.x, cameraLookAtPoint.y, cameraLookAtPoint.z);
 			break;
 		case STATE_CHASE_CAMERA:
-
+			cameraLookAtEye = viewPointLookAt_Eye;
+			cameraLookAtPoint = viewPointLookAt_At;
+			printf("cameraLookAtEye: %f,%f,%f\n", cameraLookAtEye.x, cameraLookAtEye.y, cameraLookAtEye.z);
+			printf("cameraLookAtPoint: %f,%f,%f\n", cameraLookAtPoint.x, cameraLookAtPoint.y, cameraLookAtPoint.z);
+			break;
 			break;
 		}
 		
