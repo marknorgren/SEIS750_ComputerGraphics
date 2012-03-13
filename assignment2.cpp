@@ -37,9 +37,9 @@ enum state {
 	//modelview and perspective matrices
 	mat4 mv, p;
 
-	//used for zooming
+	//used for Dolly
 	GLfloat cameraPosition_Dolly = 90.0f;
-	//used for dollying
+	//used for zooming
 	GLfloat cameraZoom_FOV = 90.0f;
 	// camera rotation
 	GLfloat cameraRotation = 5.0f;
@@ -186,6 +186,8 @@ enum state {
 			/************************************************************************************** RESET CAMERA */
 		case 'r':
 			{
+				lookAtCenterOfStage = true;
+				current_state = STATE_STATIC_CAMERA;
 				break;
 			}
 
@@ -755,9 +757,10 @@ enum state {
 			viewPointLookAt_Eye = vec4(eyeX,ty+5,eyeZ, 1.0);
 			atX = tx + (20 * sin(carHeading));
 			atZ = tz + (20 * cos(carHeading));
-			viewPointLookAt_At = vec4(atX, ty, atZ, 1.0);
+			viewPointLookAt_At = RotateY(rotateHead) * vec4(atX, ty, atZ, 1.0);
 			printf("cameraLookAtEye: %f,%f,%f\n", cameraLookAtEye.x, cameraLookAtEye.y, cameraLookAtEye.z);
 			printf("cameraLookAtPoint: %f,%f,%f\n", cameraLookAtPoint.x, cameraLookAtPoint.y, cameraLookAtPoint.z);
+			printf("tx:%f,ty:%f,tz:%f\n", tx,ty,tz);
 			break;
 		case STATE_CHASE_CAMERA:
 			eyeX = tx - (20 * sin(carHeading));
@@ -768,6 +771,7 @@ enum state {
 			viewPointLookAt_At = vec4(atX, ty, atZ, 1.0);
 			printf("viewPointLookAt_Eye: %f,%f,%f\n", viewPointLookAt_Eye.x, viewPointLookAt_Eye.y, viewPointLookAt_Eye.z);
 			printf("viewPointLookAt_At: %f,%f,%f\n", viewPointLookAt_At.x, viewPointLookAt_At.y, viewPointLookAt_At.z);
+			printf("tx:%f,ty:%f,tz:%f\n", tx,ty,tz);
 			break;
 		}
 		glutPostRedisplay();
