@@ -767,8 +767,8 @@ enum state {
 
 		case STATE_VIEWPOINT_CAMERA:
 			fov = DEFAULT_FOV;
-			eyeX = tx + (2 * sin(carHeading));
-			eyeZ = tz + (2 * cos(carHeading));
+			eyeX = tx + (3.5 * sin(carHeading));
+			eyeZ = tz + (3.5 * cos(carHeading));
 			viewPointLookAt_Eye = vec4(eyeX,ty+5,eyeZ, 1.0);
 			atX = tx + (20 * sin(carHeading));
 			atZ = tz + (20 * cos(carHeading));
@@ -1030,16 +1030,9 @@ enum state {
 
 		cameraMatrix = LookAt(cameraLookAtEye, cameraLookAtPoint, vec4(0, 1, 0, 0.0));
 		cameraMatrix = cameraMatrix * RotateY(cameraRotation);
-		//mv = LookAt(vec4(0, 0, cameraPosition_Dolly,2 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-		wholeCarMatrix = cameraMatrix  * RotateX(rx);
-		wholeCarMatrix = cameraMatrix  * RotateY(ry);
-		wholeCarMatrix = cameraMatrix  * RotateZ(rz);
 		wholeCarMatrix = cameraMatrix * Translate(tx, ty, tz);
 
 		mv = cameraMatrix * mv;
-		mv = mv * Translate(0,0,0);
-		mv = mv * Translate(tx, ty, tz);
-
 		mv = mv * RotateX(rx);
 		mv = mv * RotateY(ry);
 		mv = mv * RotateZ(rz); 
@@ -1258,8 +1251,6 @@ enum state {
 		mv = cameraMatrix;
 
 		/* camera position */
-		//cameraRotation = 
-		//mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 		p = Perspective(fov, (float)ww/(float)wh, 1.0, 200.0);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
@@ -1272,7 +1263,7 @@ enum state {
 
 
 	void reshape(int width, int height){
-		ww= width;
+		ww = width;
 		wh = height;
 		//field of view angle, aspect ratio, closest distance from camera to object, largest distanec from camera to object
 		p = Perspective(fov, (float)width/(float)height, 1.0, 150.0);
