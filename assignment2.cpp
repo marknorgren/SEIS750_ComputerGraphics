@@ -638,6 +638,8 @@ enum state {
 	{
 		GLfloat txBeforeMove = 0.0f;
 		GLfloat tzBeforeMove = 0.0f;
+
+
 		if (drivingForward) {
 			// handle rotating wheels forward
 			wheelRotation = wheelRotation += CAR_SPEED;
@@ -669,8 +671,8 @@ enum state {
 			tx += CAR_SPEED * sin(carHeading);
 			// if next position puts car outside of stage area rollback update, stop moving
 			if (	(tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2))
-					|| // or
-					(tz < -((STAGE_DEPTH-5)/2) || tz > ((STAGE_DEPTH-5)/2))
+				|| // or
+				(tz < -((STAGE_DEPTH-5)/2) || tz > ((STAGE_DEPTH-5)/2))
 				) 
 			{
 				tx = txBeforeMove;
@@ -679,16 +681,16 @@ enum state {
 			}
 			else {
 				// not outside of stage bounds
-				if (current_state == STATE_VIEWPOINT_CAMERA)
-				{
-					// update viewPointLookAtPoint
-					//viewPointLookAtPoint = vec4((tx+5)*cos(carHeading), (tz+5)*cos(carHeading), 0.0f, 1.0);
-					//cameraLookAtPoint = viewPointLookAtDirection;
+				//if (current_state == STATE_VIEWPOINT_CAMERA)
+				//{
+				//	// update viewPointLookAtPoint
+				//	//viewPointLookAtPoint = vec4((tx+5)*cos(carHeading), (tz+5)*cos(carHeading), 0.0f, 1.0);
+				//	//cameraLookAtPoint = viewPointLookAtDirection;
 
-					viewPointLookAt_Eye = vec4(tx,ty+5,tz, 1.0);
-					viewPointLookAt_At = vec4(tx + (VIEWPOINT_LOOK_AT_DISTANCE*sin(carHeading)), ty, tz + (VIEWPOINT_LOOK_AT_DISTANCE*cos(carHeading)), 1.0);
-				}
-				else cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
+				//	viewPointLookAt_Eye = vec4(tx,ty+5,tz, 1.0);
+				//	viewPointLookAt_At = vec4(tx + (VIEWPOINT_LOOK_AT_DISTANCE*sin(carHeading)), ty, tz + (VIEWPOINT_LOOK_AT_DISTANCE*cos(carHeading)), 1.0);
+				//}
+				//else cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
 			}
 		}
 
@@ -730,8 +732,44 @@ enum state {
 				drivingBackward = false;
 			}
 		}
-		//printf("carHeading: %f - wheelsTurned: %d - ry: %f\n", carHeading, wheelsTurned, ry);
-		//printf("tz: %f, tx: %f\n", tz, tx);
+
+		float eyeX = 0.0f;
+		float eyeZ = 0.0f;
+		float atX = 0.0f;
+		float atZ = 0.0f;
+		switch (current_state)
+		{
+		case STATE_STATIC_CAMERA:
+			// look at car/center of stage
+			if (!lookAtCenterOfStage) 
+				cameraLookAtPoint = vec4(tx, ty, tz, 1.0);
+			else 
+				cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
+
+			cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
+			break;
+
+		case STATE_VIEWPOINT_CAMERA:
+			eyeX = tx - (2 * sin(carHeading));
+			eyeZ = tz - (2 * cos(carHeading));
+			viewPointLookAt_Eye = vec4(eyeX,ty+5,eyeZ, 1.0);
+			atX = tx + (20 * sin(carHeading));
+			atZ = tz + (20 * cos(carHeading));
+			viewPointLookAt_At = vec4(atX, ty, atZ, 1.0);
+			printf("cameraLookAtEye: %f,%f,%f\n", cameraLookAtEye.x, cameraLookAtEye.y, cameraLookAtEye.z);
+			printf("cameraLookAtPoint: %f,%f,%f\n", cameraLookAtPoint.x, cameraLookAtPoint.y, cameraLookAtPoint.z);
+			break;
+		case STATE_CHASE_CAMERA:
+			eyeX = tx - (20 * sin(carHeading));
+			eyeZ = tz - (20 * cos(carHeading));
+			viewPointLookAt_Eye = vec4(eyeX,ty+15,eyeZ, 1.0);
+			atX = tx + (10 * sin(carHeading));
+			atZ = tz + (10 * cos(carHeading));
+			viewPointLookAt_At = vec4(atX, ty, atZ, 1.0);
+			printf("viewPointLookAt_Eye: %f,%f,%f\n", viewPointLookAt_Eye.x, viewPointLookAt_Eye.y, viewPointLookAt_Eye.z);
+			printf("viewPointLookAt_At: %f,%f,%f\n", viewPointLookAt_At.x, viewPointLookAt_At.y, viewPointLookAt_At.z);
+			break;
+		}
 		glutPostRedisplay();
 		glutTimerFunc(1000/v, my_timer, v);
 	}
@@ -956,7 +994,6 @@ enum state {
 
 			cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
 			break;
-
 		case STATE_VIEWPOINT_CAMERA:
 			cameraLookAtEye = viewPointLookAt_Eye;
 			cameraLookAtPoint = viewPointLookAt_At;
@@ -969,16 +1006,13 @@ enum state {
 			printf("cameraLookAtEye: %f,%f,%f\n", cameraLookAtEye.x, cameraLookAtEye.y, cameraLookAtEye.z);
 			printf("cameraLookAtPoint: %f,%f,%f\n", cameraLookAtPoint.x, cameraLookAtPoint.y, cameraLookAtPoint.z);
 			break;
-			break;
 		}
-		
+
 
 
 		cameraMatrix = LookAt(cameraLookAtEye, cameraLookAtPoint, vec4(0, 1, 0, 0.0));
-		//cameraMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0,0,0, 1.0), vec4(0, 1, 0, 0.0));
 		cameraMatrix = cameraMatrix * RotateY(cameraRotation);
-		allWheelsMatrix = LookAt(vec4(0, 20, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
-		mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		//mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 		wholeCarMatrix = cameraMatrix  * RotateX(rx);
 		wholeCarMatrix = cameraMatrix  * RotateY(ry);
 		wholeCarMatrix = cameraMatrix  * RotateZ(rz);
@@ -991,6 +1025,57 @@ enum state {
 		mv = mv * RotateX(rx);
 		mv = mv * RotateY(ry);
 		mv = mv * RotateZ(rz); 
+
+
+		/* CORNER CUBES */
+		/* cube 1 */
+		mat4 cubeView = cameraMatrix;
+		cubeView = cubeView * Translate(48, 1, 48);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+		glBindVertexArray( vao[0] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+		/* cube 2 */
+		cubeView = cameraMatrix;
+		cubeView = cubeView * Translate(-48, 1, -48);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+		glBindVertexArray( vao[0] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+		/* cube 3 */
+		cubeView = cameraMatrix;
+		cubeView = cubeView * Translate(48, 1, -48);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+		glBindVertexArray( vao[0] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+		/* cube 4 */
+		cubeView = cameraMatrix;
+		cubeView = cubeView * Translate(-48, 1, 48);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
+		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+		glBindVertexArray( vao[0] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+
+
+		for(int cubeIndex=0;cubeIndex<3;cubeIndex++)
+		{
+			cubeView = cameraMatrix;
+			cubeView = cubeView * Translate(0, 2, (cubeIndex*15)+10);
+			glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
+			glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+			glBindVertexArray( vao[0] );
+			glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+
+			cubeView = cameraMatrix;
+			cubeView = cubeView * Translate(0, 2, (-(cubeIndex*15))-10);
+			glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
+			glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+			glBindVertexArray( vao[0] );
+			glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+		}
+
+
 
 		/* draw car */
 		mv = cameraMatrix;
