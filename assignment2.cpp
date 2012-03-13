@@ -175,8 +175,8 @@ enum state {
 			{
 				if(current_state==STATE_STATIC_CAMERA)
 				{
-				if (fov>1) fov--;
-				fovStaticCameraSetting = fov; //save settting
+					if (fov>1) fov--;
+					fovStaticCameraSetting = fov; //save settting
 				}
 				break;
 			}
@@ -259,14 +259,14 @@ enum state {
 			}
 		case 'z':
 			{
-				
+
 				if (rotateHead < 55)
 					rotateHead += 5;
 				break;
 			}
 		case 'x':
 			{
-				
+
 				if (rotateHead > -55 )
 					rotateHead -= 5;
 				break;
@@ -692,19 +692,6 @@ enum state {
 				tz = tzBeforeMove;
 				drivingForward = false;
 			}
-			else {
-				// not outside of stage bounds
-				//if (current_state == STATE_VIEWPOINT_CAMERA)
-				//{
-				//	// update viewPointLookAtPoint
-				//	//viewPointLookAtPoint = vec4((tx+5)*cos(carHeading), (tz+5)*cos(carHeading), 0.0f, 1.0);
-				//	//cameraLookAtPoint = viewPointLookAtDirection;
-
-				//	viewPointLookAt_Eye = vec4(tx,ty+5,tz, 1.0);
-				//	viewPointLookAt_At = vec4(tx + (VIEWPOINT_LOOK_AT_DISTANCE*sin(carHeading)), ty, tz + (VIEWPOINT_LOOK_AT_DISTANCE*cos(carHeading)), 1.0);
-				//}
-				//else cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
-			}
 		}
 
 		if (drivingBackward) {
@@ -761,7 +748,6 @@ enum state {
 				cameraLookAtPoint = vec4(tx, ty, tz, 1.0);
 			else 
 				cameraLookAtPoint = vec4(0.0f, 0.0f, 0.0f, 1.0);
-
 			cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
 			break;
 
@@ -1086,8 +1072,6 @@ enum state {
 			glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 		}
 
-
-
 		/* draw car */
 		mv = cameraMatrix;
 		wholeCarMatrix = mv;
@@ -1127,9 +1111,6 @@ enum state {
 		allWheelsMatrix = wholeCarMatrix;
 
 		/**************************************************************************************** draw a wheel - FRONT LEFT */
-
-
-
 		mat4 frontLeft = allWheelsMatrix;
 		frontLeft = frontLeft * Translate(2.0, -1.0, -0.7);
 		frontLeft = frontLeft * RotateY(90+(wheelsTurned*5));
@@ -1278,7 +1259,7 @@ enum state {
 		glutInitWindowPosition(0, 0); 
 		glutInitWindowSize(ww, wh);
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-		glutCreateWindow("SEIS750 - Assignment 2 - Mark Norgren");  
+		glutCreateWindow("SEIS750 - Assignment 3 - Mark Norgren");  
 
 		glewExperimental = GL_TRUE;
 
