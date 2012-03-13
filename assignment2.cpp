@@ -49,7 +49,9 @@ enum state {
 	vec4 cameraLookAtPoint	= (0.0f, 0.0f, 0.0f, 1.0);
 	vec4 cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
 	// camera zoom
-	float fov = 45.0;
+#define DEFAULT_FOV 45.0
+	float fov = DEFAULT_FOV;
+	float fovStaticCameraSetting = DEFAULT_FOV;
 
 
 	//and we'll need pointers to our shader variables
@@ -162,12 +164,20 @@ enum state {
 			/*********************************************************** ZOOM CAMERA */
 		case 's': // ZOOM OUT
 			{
-				if (fov<170) fov++;
+				if(current_state==STATE_STATIC_CAMERA)
+				{
+					if (fov<170) fov++;
+					fovStaticCameraSetting = fov; //save settting
+				}
 				break;
 			}
 		case 'a': // ZOOM IN
 			{
+				if(current_state==STATE_STATIC_CAMERA)
+				{
 				if (fov>1) fov--;
+				fovStaticCameraSetting = fov; //save settting
+				}
 				break;
 			}
 			//********************************************************** ZOOM CAMERA */
@@ -671,6 +681,7 @@ enum state {
 			tzBeforeMove = tz;
 			tz += CAR_SPEED * cos(carHeading);
 			tx += CAR_SPEED * sin(carHeading);
+			printf("carHeading - 1: %f\n", carHeading);
 			// if next position puts car outside of stage area rollback update, stop moving
 			if (	(tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2))
 				|| // or
@@ -739,9 +750,12 @@ enum state {
 		float eyeZ = 0.0f;
 		float atX = 0.0f;
 		float atZ = 0.0f;
+		printf("carHeading - 2: %f\n", carHeading);
 		switch (current_state)
 		{
 		case STATE_STATIC_CAMERA:
+			//set fov to last setting
+			fov = fovStaticCameraSetting;
 			// look at car/center of stage
 			if (!lookAtCenterOfStage) 
 				cameraLookAtPoint = vec4(tx, ty, tz, 1.0);
@@ -752,8 +766,9 @@ enum state {
 			break;
 
 		case STATE_VIEWPOINT_CAMERA:
-			eyeX = tx - (2 * sin(carHeading));
-			eyeZ = tz - (2 * cos(carHeading));
+			fov = DEFAULT_FOV;
+			eyeX = tx + (2 * sin(carHeading));
+			eyeZ = tz + (2 * cos(carHeading));
 			viewPointLookAt_Eye = vec4(eyeX,ty+5,eyeZ, 1.0);
 			atX = tx + (20 * sin(carHeading));
 			atZ = tz + (20 * cos(carHeading));
@@ -763,6 +778,7 @@ enum state {
 			printf("tx:%f,ty:%f,tz:%f\n", tx,ty,tz);
 			break;
 		case STATE_CHASE_CAMERA:
+			fov = DEFAULT_FOV;
 			eyeX = tx - (20 * sin(carHeading));
 			eyeZ = tz - (20 * cos(carHeading));
 			viewPointLookAt_Eye = vec4(eyeX,ty+15,eyeZ, 1.0);
@@ -1012,11 +1028,9 @@ enum state {
 			break;
 		}
 
-
-
 		cameraMatrix = LookAt(cameraLookAtEye, cameraLookAtPoint, vec4(0, 1, 0, 0.0));
 		cameraMatrix = cameraMatrix * RotateY(cameraRotation);
-		//mv = LookAt(vec4(0, 0, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		//mv = LookAt(vec4(0, 0, cameraPosition_Dolly,2 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 		wholeCarMatrix = cameraMatrix  * RotateX(rx);
 		wholeCarMatrix = cameraMatrix  * RotateY(ry);
 		wholeCarMatrix = cameraMatrix  * RotateZ(rz);
@@ -1245,7 +1259,7 @@ enum state {
 
 		/* camera position */
 		//cameraRotation = 
-		mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
+		//mv = LookAt(vec4(0, 25, cameraPosition_Dolly, 1.0), vec4(0, 0, 0, 1.0), vec4(0, 1, 0, 0.0));
 		p = Perspective(fov, (float)ww/(float)wh, 1.0, 200.0);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
