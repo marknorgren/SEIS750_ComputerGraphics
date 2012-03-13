@@ -42,7 +42,7 @@ enum state {
 	//used for zooming
 	GLfloat cameraZoom_FOV = 90.0f;
 	// camera rotation
-	GLfloat cameraRotation = 5.0f;
+	GLfloat cameraRotation = 0.0f;
 
 	// camera lookat point
 	bool lookAtCenterOfStage = true;
