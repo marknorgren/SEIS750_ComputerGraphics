@@ -196,7 +196,14 @@ enum state {
 			/************************************************************************************** RESET CAMERA */
 		case 'r':
 			{
+				// reset all Camera Settings
+				fov = DEFAULT_FOV;
+				fovStaticCameraSetting = DEFAULT_FOV;
+				cameraZoom_FOV = 90.0f;
+				cameraPosition_Dolly = 90.0f;
 				lookAtCenterOfStage = true;
+				cameraLookAtPoint	= (0.0f, 0.0f, 0.0f, 1.0);
+				cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
 				current_state = STATE_STATIC_CAMERA;
 				break;
 			}
@@ -755,7 +762,7 @@ enum state {
 			fov = DEFAULT_FOV;
 			eyeX = tx + (0.5 * sin(carHeading));
 			eyeZ = tz + (0.5 * cos(carHeading));
-			viewPointLookAt_Eye = vec4(eyeX,ty+5,eyeZ, 1.0);
+			viewPointLookAt_Eye = RotateY(rotateHead) * vec4(eyeX,ty+5,eyeZ, 1.0);
 			atX = tx + (20 * sin(carHeading));
 			atZ = tz + (20 * cos(carHeading));
 			viewPointLookAt_At = RotateY(rotateHead) * vec4(atX, ty, atZ, 1.0);
