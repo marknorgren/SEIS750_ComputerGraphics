@@ -762,7 +762,7 @@ enum state {
 			fov = DEFAULT_FOV;
 			eyeX = tx + (0.5 * sin(carHeading));
 			eyeZ = tz + (0.5 * cos(carHeading));
-			viewPointLookAt_Eye = RotateY(rotateHead) * vec4(eyeX,ty+5,eyeZ, 1.0);
+			viewPointLookAt_Eye = vec4(eyeX,ty+5,eyeZ, 1.0);
 			atX = tx + (20 * sin(carHeading));
 			atZ = tz + (20 * cos(carHeading));
 			viewPointLookAt_At = RotateY(rotateHead) * vec4(atX, ty, atZ, 1.0);
