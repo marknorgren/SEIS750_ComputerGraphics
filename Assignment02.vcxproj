@@ -69,9 +69,11 @@
     <ClInclude Include="MRKCheckError.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="fshader-lighting.glsl" />
     <None Include="fshader-transform.glsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="vshader-lighting.glsl" />
     <None Include="vshader-transform.glsl">
       <FileType>Document</FileType>
     </None>
