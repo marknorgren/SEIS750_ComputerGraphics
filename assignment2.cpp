@@ -11,6 +11,8 @@
 #include "MRKCheckError.h"
 #pragma comment(lib, "glew32.lib")
 
+#define DEBUG 1
+
 //store window width and height
 int ww=1200, wh=800;
 
@@ -79,6 +81,8 @@ enum state {
 	{
 		CUBE,
 		CAR,
+		HEADLIGHT,
+		POLICE_LIGHT,
 		WHEEL,
 		TIRETREAD,
 		HUBCAP,
@@ -94,6 +98,10 @@ enum state {
 		CUBE_COLORS,
 		CAR_VERTS,
 		CAR_COLORS,
+		HEADLIGHT_VERTS,
+		HEADLIGHT_COLORS,
+		POLICE_LIGHT_VERTS,
+		POLICE_LIGHT_COLORS,
 		WHEEL_VERTS,
 		WHEEL_COLORS,
 		TIRETREAD_VERTS,
@@ -345,7 +353,7 @@ enum state {
 	vec4 carColors[36];
 	void generateCar() {
 		for(int i=0; i<6; i++){
-			carColors[i] = vec4(1.0, 1.0, 0.0, 1.0); //front
+			carColors[i] = vec4(0.5, 0.5, 0.9, 1.0); //front
 		}
 		carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
 		carVerts[1] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		0.0f, 1.0);
@@ -531,6 +539,61 @@ enum state {
 		return totalverts;
 	}
 
+	int headlightvertcount;
+	vec4* headlight_verts;
+	vec4* headlight_colors;
+	int generateHeadlight(float radius, int subdiv, vec4 color){
+		float step = (360.0/subdiv)*(M_PI/180.0);
+		printf("step: %f\n", step);
+
+		int totalverts = 360+2;//ceil(subdiv/2.0)*subdiv ;
+		printf("totalVerts: %d\n", totalverts);
+		if(headlight_verts){
+			delete[] headlight_verts;
+		}
+
+		/* COLOR */
+		headlight_verts = new vec4[totalverts];
+		headlight_colors = new vec4[totalverts];
+		for(int i=0; i<totalverts; i++){
+			headlight_colors[i] = color; //white
+		}
+
+		/* POSITION VERTICES */
+		float a=0, x=0.0,y=0.0,z=0.0;
+		// initial point at origin
+		headlight_verts[0] = vec4(0.0f,0.0f,0.0f,1.0);
+		int vert_count = 1;
+		vec4 firstOne;
+		for (int i=0;i<360;i++)
+		{
+			float angle = i * 2 * M_PI/360;
+			x = cos(angle) * radius;
+			y = sin(angle) * radius;
+			z = 0.0f;
+			headlight_verts[vert_count] = vec4(x, y, z, 1.0);
+			if (i==0) 
+			{
+				firstOne = vec4(x, y, z, 1.0);
+				printf("firstOne: %f,%f,%f\n", x, y, z);
+			}
+			vert_count++;
+		}
+
+		headlight_verts[vert_count] = firstOne;
+		vert_count++;
+		headlight_verts[vert_count] = vec4(0.0f,0.0f,0.0f,1.0);
+
+#if DEBUG
+		for (int i=0;i<=totalverts;i++)
+		{
+			printf("headlight-index,%d,x,%f,y,%f,z,%f\n", i, headlight_verts[i][0], headlight_verts[i][1], headlight_verts[i][2]); 
+		}
+#endif
+
+		return totalverts;
+	}
+
 	int circlevertcount;
 	vec4* circle_verts;
 	vec4* circle_colors;
@@ -540,9 +603,9 @@ enum state {
 
 		int totalverts = 360+2;//ceil(subdiv/2.0)*subdiv ;
 		printf("totalVerts: %d\n", totalverts);
-		if(circle_verts){
-			delete[] circle_verts;
-		}
+		//if(circle_verts){
+		//	delete[] circle_verts;
+		//}
 
 		/* COLOR */
 		circle_verts = new vec4[totalverts];
@@ -576,10 +639,10 @@ enum state {
 		vert_count++;
 		circle_verts[vert_count] = vec4(0.0f,0.0f,0.0f,1.0);
 
-#if DEBUG
+#if DEBUG2
 		for (int i=0;i<=totalverts;i++)
 		{
-			printf("index,%d,x,%f,y,%f,z,%f\n", i, circle_verts[i][0], circle_verts[i][1], circle_verts[i][2]); 
+			printf("Circle-index,%d,x,%f,y,%f,z,%f\n", i, circle_verts[i][0], circle_verts[i][1], circle_verts[i][2]); 
 		}
 #endif
 
@@ -640,7 +703,7 @@ enum state {
 		vert_count++;
 		tireTread_verts[vert_count] = firstOne;
 
-#if DEBUG
+#if DEBUG2
 		for (int i=0;i<=totalverts;i++)
 		{
 			printf("index,%d,x,%f,y,%f,z,%f\n", i, tireTread_verts[i][0], tireTread_verts[i][1], tireTread_verts[i][2]); 
@@ -688,7 +751,7 @@ enum state {
 			tzBeforeMove = tz;
 			tz += CAR_SPEED * cos(carHeading);
 			tx += CAR_SPEED * sin(carHeading);
-			printf("carHeading - 1: %f\n", carHeading);
+			//printf("carHeading - 1: %f\n", carHeading);
 			// if next position puts car outside of stage area rollback update, stop moving
 			if (	(tx < -((STAGE_WIDTH-5)/2) || tx > ((STAGE_WIDTH-5)/2))
 				|| // or
@@ -744,7 +807,7 @@ enum state {
 		float eyeZ = 0.0f;
 		float atX = 0.0f;
 		float atZ = 0.0f;
-		printf("carHeading - 2: %f\n", carHeading);
+		//printf("carHeading - 2: %f\n", carHeading);
 		switch (current_state)
 		{
 		case STATE_STATIC_CAMERA:
@@ -850,6 +913,9 @@ enum state {
 		model_view = glGetUniformLocation(program, "model_view");
 		projection = glGetUniformLocation(program, "projection");
 
+		
+		
+
 		/*********************************************************
 		/** HEAD 
 		/*********************************************************/
@@ -888,6 +954,28 @@ enum state {
 		//and now our colors for each vertex
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
 		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		/*********************************************************
+		/** HEADLIGHT 
+		/*********************************************************/
+
+		// generate vertices 
+		headlightvertcount = generateHeadlight(1.0, 30, vec4(1.0, 1.0, 1.0, 1.0));
+
+		glBindVertexArray( vao[HEADLIGHT] );
+		glGenBuffers( 2, &vbo[HEADLIGHT_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEADLIGHT_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, headlightvertcount*sizeof(vec4), headlight_verts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEADLIGHT_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, headlightvertcount*sizeof(vec4), headlight_colors, GL_STATIC_DRAW );
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -990,6 +1078,7 @@ enum state {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		mat4 cameraMatrix;
 		mat4 wholeCarMatrix;
+		mat4 headlightMatrix;
 		mat4 headMatrix;
 		mat4 frontWheelsMatrix;
 		mat4 allWheelsMatrix;
@@ -1094,6 +1183,13 @@ enum state {
 
 		glBindVertexArray( vao[CAR] );
 		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+
+		/* headlight */
+		headlightMatrix = wholeCarMatrix * Translate(1,2.5,-1.0);
+		headlightMatrix = headlightMatrix * RotateY(90);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
+		glBindVertexArray( vao[HEADLIGHT] );
+		glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
 
 		/* draw a head */
 		headMatrix = wholeCarMatrix * Translate(0, 1.5, -1.0);
