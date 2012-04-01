@@ -426,6 +426,74 @@ enum state {
 		triangleVerts[2] = vec4(0.45,-0.45f,0.0f,1.0);
 	}
 
+		/** POLICE LIGHT OBJECT **/
+	vec4 policeLightVerts[36];
+	vec4 policeLightColors[36];
+	void generatePoliceLight(){
+		float policeLightSize = 0.3;
+		vec4 policeLightColor = vec4(1.0,0.0,0.0,1.0);
+		for(int i=0; i<6; i++){
+			policeLightColors[i] = policeLightColor; //front
+		}
+		policeLightVerts[0] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[1] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[2] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[3] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[4] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[5] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
+
+
+		for(int i=6; i<12; i++){
+			policeLightColors[i] = policeLightColor; //back
+		}
+		policeLightVerts[6] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[7] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[8] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[9] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[10] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[11] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+
+		for(int i=12; i<18; i++){
+			policeLightColors[i] = policeLightColor; //left
+		}
+		policeLightVerts[12] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[13] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[14] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[15] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[16] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[17] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
+
+		for(int i=18; i<24; i++){
+			policeLightColors[i] = policeLightColor; //right
+		}
+		policeLightVerts[18] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[19] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[20] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[21] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[22] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[23] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
+
+		for(int i=24; i<30; i++){
+			policeLightColors[i] = policeLightColor; //top
+		}
+		policeLightVerts[24] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[25] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[26] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[27] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[28] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[29] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
+
+		for(int i=30; i<36; i++){
+			policeLightColors[i] = policeLightColor; //bottom
+		}
+		policeLightVerts[30] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[31] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[32] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[33] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[34] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[35] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+	}
+
 	/** CUBE OBJECT **/
 	vec4 cubeVerts[36];
 	vec4 cubeColors[36];
@@ -887,6 +955,24 @@ enum state {
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
+		// POLICE LIGHT
+		// Create and initialize any buffer objects
+		generatePoliceLight();
+		glBindVertexArray( vao[POLICE_LIGHT] );
+		glGenBuffers( 2, &vbo[POLICE_LIGHT_VERTS] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_VERTS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightVerts), policeLightVerts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightColors), policeLightColors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
 		/*********************************************************
 		* CAR
 		*
@@ -912,9 +998,6 @@ enum state {
 		//grab pointers for our modelview and perspecive uniform matrices
 		model_view = glGetUniformLocation(program, "model_view");
 		projection = glGetUniformLocation(program, "projection");
-
-		
-		
 
 		/*********************************************************
 		/** HEAD 
@@ -963,7 +1046,7 @@ enum state {
 		/*********************************************************/
 
 		// generate vertices 
-		headlightvertcount = generateHeadlight(1.0, 30, vec4(1.0, 1.0, 1.0, 1.0));
+		headlightvertcount = generateHeadlight(0.4, 30, vec4(1.0, 1.0, 1.0, 1.0));
 
 		glBindVertexArray( vao[HEADLIGHT] );
 		glGenBuffers( 2, &vbo[HEADLIGHT_VERTS] );
@@ -1079,6 +1162,7 @@ enum state {
 		mat4 cameraMatrix;
 		mat4 wholeCarMatrix;
 		mat4 headlightMatrix;
+		mat4 policeLightMatrix;
 		mat4 headMatrix;
 		mat4 frontWheelsMatrix;
 		mat4 allWheelsMatrix;
@@ -1182,11 +1266,30 @@ enum state {
 		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
 		glBindVertexArray( vao[CAR] );
-		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the car
 
-		/* headlight */
-		headlightMatrix = wholeCarMatrix * Translate(1,2.5,-1.0);
-		headlightMatrix = headlightMatrix * RotateY(90);
+		/* police light */
+		policeLightMatrix = wholeCarMatrix;
+		policeLightMatrix = policeLightMatrix * Translate(0.6, 1.4, -4.7);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
+		glBindVertexArray( vao[POLICE_LIGHT] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
+		/* police light */
+		policeLightMatrix = wholeCarMatrix;
+		policeLightMatrix = policeLightMatrix * Translate(-0.6, 1.4, -4.7);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
+		glBindVertexArray( vao[POLICE_LIGHT] );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
+
+		/* left headlight */
+		headlightMatrix = wholeCarMatrix * Translate(0.7,0.4,0.01);
+		//headlightMatrix = headlightMatrix * RotateY(90);
+		glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
+		glBindVertexArray( vao[HEADLIGHT] );
+		glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
+		/* right headlight */
+		headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
+		//headlightMatrix = headlightMatrix * RotateY(90);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 		glBindVertexArray( vao[HEADLIGHT] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
