@@ -56,11 +56,21 @@ enum state {
 	float fovStaticCameraSetting = DEFAULT_FOV;
 
 
-	//and we'll need pointers to our shader variables
-	GLuint model_view;
-	GLuint projection;
-	GLuint vPosition;
-	GLuint vColor;
+//and we'll need pointers to our shader variables
+GLuint model_view;
+GLuint projection;
+GLuint vPosition;
+GLuint vColor;
+
+GLuint vAmbientDiffuseColor;
+GLuint vSpecularColor;
+GLuint vSpecularExponent;
+GLuint vNormal;
+GLuint ambient_light;
+
+GLuint light_position;
+GLuint light_color;
+
 
 	GLfloat carHeading = 0.0f;
 	GLfloat rotateHead = 0.0f;
@@ -83,6 +93,7 @@ enum state {
 		CAR,
 		HEADLIGHT,
 		POLICE_LIGHT,
+		POLICE_LIGHT2,
 		WHEEL,
 		TIRETREAD,
 		HUBCAP,
@@ -102,6 +113,8 @@ enum state {
 		HEADLIGHT_COLORS,
 		POLICE_LIGHT_VERTS,
 		POLICE_LIGHT_COLORS,
+		POLICE_LIGHT_VERTS2,
+		POLICE_LIGHT_COLORS2,
 		WHEEL_VERTS,
 		WHEEL_COLORS,
 		TIRETREAD_VERTS,
@@ -353,7 +366,7 @@ enum state {
 	vec4 carColors[36];
 	void generateCar() {
 		for(int i=0; i<6; i++){
-			carColors[i] = vec4(0.5, 0.5, 0.9, 1.0); //front
+			carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //front
 		}
 		carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
 		carVerts[1] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		0.0f, 1.0);
@@ -363,7 +376,7 @@ enum state {
 		carVerts[5] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
 
 		for(int i=6; i<12; i++){
-			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //back, black
+			carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //back
 		}
 		//				X						Y					Z
 		carVerts[6] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
@@ -374,7 +387,7 @@ enum state {
 		carVerts[11] = vec4(-(CAR_WIDTH/2), -(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
 
 		for(int i=12; i<18; i++){
-			carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //right
+			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //right
 		}
 		carVerts[12] = vec4(1.0f, 1.0f,		0.0f,			1.0);
 		carVerts[13] = vec4(1.0f, -1.0f,	0.0f,			1.0);
@@ -384,7 +397,7 @@ enum state {
 		carVerts[17] = vec4(1.0f, 1.0f,		0.0f,			1.0);
 
 		for(int i=18; i<24; i++){
-			carColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //left
+			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //left
 		}
 		carVerts[18] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
 		carVerts[19] = vec4(-1.0f, -1.0f,	-(CAR_LENGTH),		1.0);
@@ -394,7 +407,7 @@ enum state {
 		carVerts[23] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
 
 		for(int i=24; i<30; i++){
-			carColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
+			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //top
 		}
 		carVerts[24] = vec4(1.0f, 1.0f, 0.0f, 1.0);
 		carVerts[25] = vec4(1.0f, 1.0f, -(CAR_LENGTH), 1.0);
@@ -429,9 +442,9 @@ enum state {
 		/** POLICE LIGHT OBJECT **/
 	vec4 policeLightVerts[36];
 	vec4 policeLightColors[36];
-	void generatePoliceLight(){
+	void generatePoliceLight(vec4 color){
 		float policeLightSize = 0.3;
-		vec4 policeLightColor = vec4(1.0,0.0,0.0,1.0);
+		vec4 policeLightColor = color;
 		for(int i=0; i<6; i++){
 			policeLightColors[i] = policeLightColor; //front
 		}
@@ -918,6 +931,33 @@ enum state {
 		glutTimerFunc(1000/v, my_timer, v);
 	}
 
+	void setupShader(GLuint prog){
+	
+	glUseProgram( prog );
+	//glLinkProgram( prog);
+	model_view = glGetUniformLocation(prog, "model_view");
+	projection = glGetUniformLocation(prog, "projection");
+	
+	vAmbientDiffuseColor = glGetAttribLocation(prog, "vAmbientDiffuseColor");
+	vSpecularColor = glGetAttribLocation(prog, "vSpecularColor");
+	vSpecularExponent = glGetAttribLocation(prog, "vSpecularExponent");
+	light_position = glGetUniformLocation(prog, "light_position");
+	light_color = glGetUniformLocation(prog, "light_color");
+	ambient_light = glGetUniformLocation(prog, "ambient_light");
+
+	glBindVertexArray( vao[0] );
+
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[0] );
+	vPosition = glGetAttribLocation(prog, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[1] );
+	vNormal = glGetAttribLocation(prog, "vNormal");
+	glEnableVertexAttribArray(vNormal);
+	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+}
+
 	void init() {
 		/*select clearing (background) color*/
 		glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -934,6 +974,7 @@ enum state {
 		// Load shaders and use the resulting shader program
 		GLuint program = InitShader( "vshader-transform.glsl", "fshader-transform.glsl" );
 		glUseProgram( program );
+		setupShader(program);
 
 		// Create a vertex array object
 		glGenVertexArrays( NUMBER_OF_VAO_OBJECTS, vao );
@@ -955,9 +996,13 @@ enum state {
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-		// POLICE LIGHT
+		
+		/*********************************************************
+		* POLICE LIGHT 1
+		*
+		*********************************************************/
 		// Create and initialize any buffer objects
-		generatePoliceLight();
+		generatePoliceLight(vec4(0.0f,0.0f,1.0f,1.0));
 		glBindVertexArray( vao[POLICE_LIGHT] );
 		glGenBuffers( 2, &vbo[POLICE_LIGHT_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_VERTS] );
@@ -968,6 +1013,27 @@ enum state {
 
 		//and now our colors for each vertex
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_COLORS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightColors), policeLightColors, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vColor");
+		glEnableVertexAttribArray(vColor);
+		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		/*********************************************************
+		* POLICE LIGHT 2
+		*
+		*********************************************************/
+		// Create and initialize any buffer objects
+		generatePoliceLight(vec4(1.0f,0.0f,0.0f,1.0));
+		glBindVertexArray( vao[POLICE_LIGHT2] );
+		glGenBuffers( 2, &vbo[POLICE_LIGHT_VERTS2] );
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_VERTS2] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightVerts), policeLightVerts, GL_STATIC_DRAW);
+		vPosition = glGetAttribLocation(program, "vPosition");
+		glEnableVertexAttribArray(vPosition);
+		glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//and now our colors for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_COLORS2] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightColors), policeLightColors, GL_STATIC_DRAW );
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
@@ -1046,7 +1112,7 @@ enum state {
 		/*********************************************************/
 
 		// generate vertices 
-		headlightvertcount = generateHeadlight(0.4, 30, vec4(1.0, 1.0, 1.0, 1.0));
+		headlightvertcount = generateHeadlight(0.4, 30, vec4(0.95, 0.95, 0.0, 1.0));
 
 		glBindVertexArray( vao[HEADLIGHT] );
 		glGenBuffers( 2, &vbo[HEADLIGHT_VERTS] );
@@ -1168,6 +1234,12 @@ enum state {
 		mat4 allWheelsMatrix;
 		mat4 inner;
 
+		glVertexAttrib4fv(vAmbientDiffuseColor, vec4(.3, .3, .3, 1));
+		glVertexAttrib4fv(vSpecularColor, vec4(1.0f,1.0f,1.0f,1.0f));
+		glVertexAttrib1f(vSpecularExponent, 10.0);
+		glUniform4fv(light_position, 1, mv*vec4(50, 50, 50, 1));
+		glUniform4fv(light_color, 1, vec4(1,1,1,1));
+		glUniform4fv(ambient_light, 1, vec4(1.0, 1.0, 1.0, 5));
 
 		switch (current_state)
 		{
@@ -1274,11 +1346,11 @@ enum state {
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
 		glBindVertexArray( vao[POLICE_LIGHT] );
 		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
-		/* police light */
+		/* police light 2*/
 		policeLightMatrix = wholeCarMatrix;
 		policeLightMatrix = policeLightMatrix * Translate(-0.6, 1.4, -4.7);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
-		glBindVertexArray( vao[POLICE_LIGHT] );
+		glBindVertexArray( vao[POLICE_LIGHT2] );
 		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
 
 		/* left headlight */
