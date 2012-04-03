@@ -356,6 +356,7 @@ GLuint light_color;
 		stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
 		stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
 		stageVerts[2] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
+
 		stageVerts[3] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
 		stageVerts[4] = vec4((STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
 		stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
@@ -1237,7 +1238,7 @@ GLuint light_color;
 		glVertexAttrib4fv(vAmbientDiffuseColor, vec4(.3, .3, .3, 1));
 		glVertexAttrib4fv(vSpecularColor, vec4(1.0f,1.0f,1.0f,1.0f));
 		glVertexAttrib1f(vSpecularExponent, 10.0);
-		glUniform4fv(light_position, 1, mv*vec4(50, 50, 50, 1));
+		
 		glUniform4fv(light_color, 1, vec4(1,1,1,1));
 		glUniform4fv(ambient_light, 1, vec4(1.0, 1.0, 1.0, 5));
 
@@ -1265,12 +1266,12 @@ GLuint light_color;
 			printf("cameraLookAtPoint: %f,%f,%f\n", cameraLookAtPoint.x, cameraLookAtPoint.y, cameraLookAtPoint.z);
 			break;
 		}
-
+						// LookAt(eye				at					up
 		cameraMatrix = LookAt(cameraLookAtEye, cameraLookAtPoint, vec4(0, 1, 0, 0.0));
 		cameraMatrix = cameraMatrix * RotateY(cameraRotation);
 		wholeCarMatrix = cameraMatrix * Translate(tx, ty, tz);
 
-		mv = cameraMatrix * mv;
+		mv = cameraMatrix;// * mv;
 		mv = mv * RotateX(rx);
 		mv = mv * RotateY(ry);
 		mv = mv * RotateZ(rz); 
@@ -1335,10 +1336,13 @@ GLuint light_color;
 		wholeCarMatrix = wholeCarMatrix * Translate(0, 2.0, 0);
 
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
-		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+		//glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
 		glBindVertexArray( vao[CAR] );
 		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the car
+
+		/* light source */
+		glUniform4fv(light_position, 1, mv*wholeCarMatrix);
 
 		/* police light */
 		policeLightMatrix = wholeCarMatrix;
