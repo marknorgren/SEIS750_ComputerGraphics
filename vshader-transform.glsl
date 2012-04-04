@@ -1,9 +1,17 @@
 #version 150
 
+
 in vec4 vPosition;
-in vec4 vColor;
-in vec4 vAmbientDiffuseColor;
 in vec3 vNormal;
+in vec4 vColor;
+in vec4 vAmbient;
+in vec4 vDiffuse;
+in vec4 vSpecular;
+in vec4 vShininess;
+
+
+in vec4 vAmbientDiffuseColor;
+
 in vec4 vSpecularColor;
 in float vSpecularExponent;
 

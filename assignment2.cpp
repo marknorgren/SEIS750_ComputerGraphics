@@ -87,26 +87,45 @@ GLuint light_color;
 #define STAGE_WIDTH 100.0f
 #define STAGE_DEPTH 100.0f
 
-	enum VAO_OBJECTS
-	{
-		CUBE,
-		CAR,
-		HEADLIGHT,
-		POLICE_LIGHT,
-		POLICE_LIGHT2,
-		WHEEL,
-		TIRETREAD,
-		HUBCAP,
-		HEAD,
-		EYE,
-		STAGE,
-		NUMBER_OF_VAO_OBJECTS
-	};
+enum LIGHTS
+{
+	HEADLIGHT_LEFT,
+	HEADLIGHT_RIGHT,
+	POLICE_LIGHT_RED,
+	POLICE_LIGHT_GREEEN,
+	NUMBER_OF_LIGHTS
+};
+
+vec4 lightPosition[NUMBER_OF_LIGHTS];
+vec4 lightDirection[NUMBER_OF_LIGHTS];
+vec4 lightIntensity[NUMBER_OF_LIGHTS]; // i.e. - light color
+float cutoffAngle[NUMBER_OF_LIGHTS]; // RADIANS!!
+
+enum VAO_OBJECTS
+{
+	CUBE,
+	CAR,
+	HEADLIGHT,
+	POLICE_LIGHT,
+	POLICE_LIGHT2,
+	WHEEL,
+	TIRETREAD,
+	HUBCAP,
+	HEAD,
+	EYE,
+	STAGE,
+	NUMBER_OF_VAO_OBJECTS
+};
 
 	enum VBO_OBJECTS
 	{
 		CUBE_VERTS,
-		CUBE_COLORS,
+		CUBE_COLORS, //NOTE: THIS ORDER HAS TO STAY THE SAME FOR NOW VERTS - COLORS
+		CUBE_NORMALS,
+		CUBE_MATERIAL_AMBIENT,
+		CUBE_MATERIAL_DIFFUSE,
+		CUBE_SPECULAR,
+		CUBE_SHININESS,
 		CAR_VERTS,
 		CAR_COLORS,
 		HEADLIGHT_VERTS,
@@ -511,9 +530,11 @@ GLuint light_color;
 	/** CUBE OBJECT **/
 	vec4 cubeVerts[36];
 	vec4 cubeColors[36];
+	vec4 cubeNormals[36];
 	void generateCube(){
 		for(int i=0; i<6; i++){
 			cubeColors[i] = vec4(0.0, 1.0, 1.0, 1.0); //front
+			cubeNormals[i] = vec4(0.0,0.0,1.0);
 		}
 		cubeVerts[0] = vec4(1.0f, -1.0f, 1.0f, 1.0);
 		cubeVerts[1] = vec4(1.0f, 1.0f, 1.0f, 1.0);
