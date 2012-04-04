@@ -386,7 +386,6 @@ enum VAO_OBJECTS
 		stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
 		stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
 		stageVerts[2] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
-
 		stageVerts[3] = vec4((STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
 		stageVerts[4] = vec4((STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
 		stageVerts[5] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
@@ -395,9 +394,11 @@ enum VAO_OBJECTS
 	/** CAR OBJECT **/
 	vec4 carVerts[36];
 	vec4 carColors[36];
+	vec3 carNormals[36];
 	void generateCar() {
 		for(int i=0; i<6; i++){
 			carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //front
+			carNormals[i] = vec3(0.0,0.0,1.0);
 		}
 		carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
 		carVerts[1] = vec4(CAR_WIDTH/2,		CAR_HEIGHT/2,		0.0f, 1.0);
@@ -408,6 +409,7 @@ enum VAO_OBJECTS
 
 		for(int i=6; i<12; i++){
 			carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //back
+			carNormals[i] = vec3(0.0,0.0,-1.0);
 		}
 		//				X						Y					Z
 		carVerts[6] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
@@ -419,6 +421,7 @@ enum VAO_OBJECTS
 
 		for(int i=12; i<18; i++){
 			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //right
+			carNormals[i] = vec3(1.0,0.0,0.0);
 		}
 		carVerts[12] = vec4(1.0f, 1.0f,		0.0f,			1.0);
 		carVerts[13] = vec4(1.0f, -1.0f,	0.0f,			1.0);
@@ -429,6 +432,7 @@ enum VAO_OBJECTS
 
 		for(int i=18; i<24; i++){
 			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //left
+			carNormals[i] = vec3(-1.0,0.0,0.0);
 		}
 		carVerts[18] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
 		carVerts[19] = vec4(-1.0f, -1.0f,	-(CAR_LENGTH),		1.0);
@@ -439,23 +443,25 @@ enum VAO_OBJECTS
 
 		for(int i=24; i<30; i++){
 			carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //top
+			carNormals[i] = vec3(0.0,1.0,0.0);
 		}
-		carVerts[24] = vec4(1.0f, 1.0f, 0.0f, 1.0);
-		carVerts[25] = vec4(1.0f, 1.0f, -(CAR_LENGTH), 1.0);
-		carVerts[26] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
-		carVerts[27] = vec4(-1.0f, 1.0f, -(CAR_LENGTH), 1.0);
-		carVerts[28] = vec4(-1.0f, 1.0f, 0.0f, 1.0);
-		carVerts[29] = vec4(1.0f, 1.0f, 0.0f, 1.0);
+		carVerts[24] = vec4(1.0f,	1.0f, 0.0f, 1.0);
+		carVerts[25] = vec4(1.0f,	1.0f, -(CAR_LENGTH), 1.0);
+		carVerts[26] = vec4(-1.0f,	1.0f, -(CAR_LENGTH), 1.0);
+		carVerts[27] = vec4(-1.0f,	1.0f, -(CAR_LENGTH), 1.0);
+		carVerts[28] = vec4(-1.0f,	1.0f, 0.0f, 1.0);
+		carVerts[29] = vec4(1.0f,	1.0f, 0.0f, 1.0);
 
 		for(int i=30; i<36; i++){
 			carColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
+			carNormals[i] = vec3(0.0,-1.0,0.0);
 		}
-		carVerts[30] = vec4(1.0f, -1.0f, -5.0f, 1.0);
-		carVerts[31] = vec4(1.0f, -1.0f, 0.0f, 1.0);
-		carVerts[32] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
-		carVerts[33] = vec4(-1.0f, -1.0f, 0.0f, 1.0);
-		carVerts[34] = vec4(-1.0f, -1.0f, -5.0f, 1.0);
-		carVerts[35] = vec4(1.0f, -1.0f, -5.0f, 1.0);
+		carVerts[30] = vec4(1.0f,	-1.0f, -5.0f, 1.0);
+		carVerts[31] = vec4(1.0f,	-1.0f, 0.0f, 1.0);
+		carVerts[32] = vec4(-1.0f,	-1.0f, 0.0f, 1.0);
+		carVerts[33] = vec4(-1.0f,	-1.0f, 0.0f, 1.0);
+		carVerts[34] = vec4(-1.0f,	-1.0f, -5.0f, 1.0);
+		carVerts[35] = vec4(1.0f,	-1.0f, -5.0f, 1.0);
 	}
 
 	/** TRIANLE OBJECT **/
@@ -617,6 +623,7 @@ enum VAO_OBJECTS
 	int spherevertcount;
 	vec4* sphere_verts;
 	vec4* sphere_colors;
+	vec3* sphere_normals;
 	int generateSphere(float radius, int subdiv, vec4 color){
 		float step = (360.0/subdiv)*(M_PI/180.0);
 
@@ -627,6 +634,7 @@ enum VAO_OBJECTS
 		}
 		sphere_verts = new vec4[totalverts];
 		sphere_colors = new vec4[totalverts];
+		sphere_normals = new vec3[totalverts];
 		for(int i=0; i<totalverts; i++){
 			sphere_colors[i] = color; //white
 		}
@@ -635,23 +643,29 @@ enum VAO_OBJECTS
 		for(float i = -M_PI/2; i<=M_PI/2; i+=step){
 			for(float j = -M_PI; j<=M_PI; j+=step){
 				//triangle 1
-				sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+				sphere_verts[k]		=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+				sphere_normals[k]	=	vec3(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i));
 				k++;
 
-				sphere_verts[k]=   vec4(radius*sin(j)*cos(i+step), radius*cos(j)*cos(i+step), radius*sin(i+step), 1.0);
+				sphere_verts[k]		=   vec4(radius*sin(j)*cos(i+step), radius*cos(j)*cos(i+step), radius*sin(i+step), 1.0);
+				sphere_normals[k]	=	vec3(radius*sin(j)*cos(i+step), radius*cos(j)*cos(i+step), radius*sin(i+step));
 				k++;
 
-				sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+				sphere_verts[k]		=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+				sphere_normals[k]	=	vec3(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step));
 				k++;
 
 				//triangle 2
-				sphere_verts[k]=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+				sphere_verts[k]		=   vec4(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step), 1.0);
+				sphere_normals[k]	=	vec3(radius*sin((j+step))*cos((i+step)), radius*cos(j+step)*cos(i+step), radius*sin(i+step));
 				k++;
 
-				sphere_verts[k]=   vec4(radius*sin(j+step)*cos(i), radius*cos(j+step)*cos(i), radius*sin(i), 1.0);
+				sphere_verts[k]		=   vec4(radius*sin(j+step)*cos(i), radius*cos(j+step)*cos(i), radius*sin(i), 1.0);
+				sphere_normals[k]	=	vec3(radius*sin(j+step)*cos(i), radius*cos(j+step)*cos(i), radius*sin(i));
 				k++;
 
-				sphere_verts[k]=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+				sphere_verts[k]		=   vec4(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i), 1.0);
+				sphere_normals[k]	=	vec3(radius*sin(j)*cos(i), radius*cos(j)*cos(i), radius*sin(i));
 				k++;
 			}
 		}
@@ -1092,7 +1106,7 @@ enum VAO_OBJECTS
 		// Create a vertex array object
 		//glGenVertexArrays( 1, &vao[1] );
 		glBindVertexArray( vao[CAR] );
-		glGenBuffers( 2, &vbo[CAR_VERTS] );
+		glGenBuffers( 3, &vbo[CAR_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1106,6 +1120,14 @@ enum VAO_OBJECTS
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
+		
+		//normal for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(carNormals), carNormals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		
 		//grab pointers for our modelview and perspecive uniform matrices
 		model_view = glGetUniformLocation(program, "model_view");
 		projection = glGetUniformLocation(program, "projection");
@@ -1117,7 +1139,7 @@ enum VAO_OBJECTS
 		spherevertcount = generateSphere(0.8, 30, vec4(1.0, 0.5, 0.5, 1.0));
 
 		glBindVertexArray( vao[HEAD] );
-		glGenBuffers( 2, &vbo[HEAD_VERTS] );
+		glGenBuffers( 3, &vbo[HEAD_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1130,6 +1152,13 @@ enum VAO_OBJECTS
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//normals for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER,spherevertcount*sizeof(vec4), sphere_normals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		/*********************************************************
 		/** EYE 
@@ -1261,7 +1290,7 @@ enum VAO_OBJECTS
 		//normals for each vertex
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_NORMALS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(stageNormals), stageNormals, GL_STATIC_DRAW );
-		vColor = glGetAttribLocation(program, "vNormal");
+		vNormal = glGetAttribLocation(program, "vNormal");
 		glEnableVertexAttribArray(vNormal);
 		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 

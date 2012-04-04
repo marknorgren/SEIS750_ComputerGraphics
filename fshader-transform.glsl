@@ -16,6 +16,6 @@ void main()
     //fColor = color;
 	// test for normal values
 	// same normal values should have same color value
-	//fColor = vec4(normal, 1.0);//color * ambient;
-	fColor = color * ambient;
+	fColor = vec4(normal, 1.0);//color * ambient;
+	//fColor = color * ambient;
 }
