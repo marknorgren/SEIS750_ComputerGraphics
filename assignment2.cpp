@@ -146,6 +146,7 @@ enum VAO_OBJECTS
 		EYE_COLORS,
 		STAGE_VERTS,
 		STAGE_COLORS,
+		STAGE_NORMALS,
 		NUMBER_OF_VBO_OBJECTS
 	};
 
@@ -367,10 +368,11 @@ enum VAO_OBJECTS
 
 	vec4 stageVerts[6];
 	vec4 stageColors[6];
-
+	vec3 stageNormals[6];
 	void generateStage() {
 		for(int i=0; i<6; i++){
 			stageColors[i] = vec4(0.5, 0.5, 0.5, 1.0); //front
+			stageNormals[i] = vec3(0.0,1.0,0.0);
 		}
 		stageVerts[0] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	-(STAGE_DEPTH/2.0f),	1.0);
 		stageVerts[1] = vec4(-(STAGE_WIDTH/2.0f),	0.0f,	(STAGE_DEPTH/2.0f),		1.0);
@@ -530,11 +532,11 @@ enum VAO_OBJECTS
 	/** CUBE OBJECT **/
 	vec4 cubeVerts[36];
 	vec4 cubeColors[36];
-	vec4 cubeNormals[36];
+	vec3 cubeNormals[36];
 	void generateCube(){
 		for(int i=0; i<6; i++){
 			cubeColors[i] = vec4(0.0, 1.0, 1.0, 1.0); //front
-			cubeNormals[i] = vec4(0.0,0.0,1.0);
+			cubeNormals[i] = vec3(0.0,0.0,1.0);
 		}
 		cubeVerts[0] = vec4(1.0f, -1.0f, 1.0f, 1.0);
 		cubeVerts[1] = vec4(1.0f, 1.0f, 1.0f, 1.0);
@@ -546,6 +548,7 @@ enum VAO_OBJECTS
 
 		for(int i=6; i<12; i++){
 			cubeColors[i] = vec4(1.0, 0.0, 1.0, 1.0); //back
+			cubeNormals[i] = vec3(0.0,0.0,-1.0);
 		}
 		cubeVerts[6] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
 		cubeVerts[7] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
@@ -556,6 +559,7 @@ enum VAO_OBJECTS
 
 		for(int i=12; i<18; i++){
 			cubeColors[i] = vec4(1.0, 1.0, 0.0, 1.0); //left
+			cubeNormals[i] = vec3(1.0,0.0,0.0);
 		}
 		cubeVerts[12] = vec4(1.0f, 1.0f, 1.0f, 1.0);
 		cubeVerts[13] = vec4(1.0f, -1.0f, 1.0f, 1.0);
@@ -566,6 +570,7 @@ enum VAO_OBJECTS
 
 		for(int i=18; i<24; i++){
 			cubeColors[i] = vec4(1.0, 0.0, 0.0, 1.0); //right
+			cubeNormals[i] = vec3(-1.0,0.0,0.0);
 		}
 		cubeVerts[18] = vec4(-1.0f, 1.0f, -1.0f, 1.0);
 		cubeVerts[19] = vec4(-1.0f, -1.0f, -1.0f, 1.0);
@@ -576,6 +581,7 @@ enum VAO_OBJECTS
 
 		for(int i=24; i<30; i++){
 			cubeColors[i] = vec4(0.0, 0.0, 1.0, 1.0); //top
+			cubeNormals[i] = vec3(0.0,1.0,0.0);
 		}
 		cubeVerts[24] = vec4(1.0f, 1.0f, 1.0f, 1.0);
 		cubeVerts[25] = vec4(1.0f, 1.0f, -1.0f, 1.0);
@@ -586,6 +592,7 @@ enum VAO_OBJECTS
 
 		for(int i=30; i<36; i++){
 			cubeColors[i] = vec4(0.0, 1.0, 0.0, 1.0); //bottom
+			cubeNormals[i] = vec3(0.0,-1.0,0.0);
 		}
 		cubeVerts[30] = vec4(1.0f, -1.0f, -1.0f, 1.0);
 		cubeVerts[31] = vec4(1.0f, -1.0f, 1.0f, 1.0);
@@ -1004,7 +1011,7 @@ enum VAO_OBJECTS
 		// CUBE
 		// Create and initialize any buffer objects
 		glBindVertexArray( vao[CUBE] );
-		glGenBuffers( 2, &vbo[CUBE_VERTS] );
+		glGenBuffers( 3, &vbo[CUBE_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1017,6 +1024,13 @@ enum VAO_OBJECTS
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//vertex normals
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(cubeNormals), cubeNormals, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		
 		/*********************************************************
@@ -1213,7 +1227,7 @@ enum VAO_OBJECTS
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
+		
 		/*********************************************************
 		* STAGE
 		*
@@ -1221,7 +1235,7 @@ enum VAO_OBJECTS
 		// Create a vertex array object
 
 		glBindVertexArray( vao[STAGE] );
-		glGenBuffers( 2, &vbo[STAGE_VERTS] );
+		glGenBuffers( 3, &vbo[STAGE_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(stageVerts), stageVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1234,6 +1248,13 @@ enum VAO_OBJECTS
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//normals for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[STAGE_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(stageNormals), stageNormals, GL_STATIC_DRAW );
+		vColor = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		//grab pointers for our modelview and perspecive uniform matrices
 		model_view = glGetUniformLocation(program, "model_view");

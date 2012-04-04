@@ -18,6 +18,7 @@ in float vSpecularExponent;
 
 out vec4 color;
 out vec4 ambient;
+out vec3 normal;
 
 uniform vec4 AmbientProduct, DiffiuseProduct, SpecularProduct;
 uniform mat4 model_view;
@@ -48,4 +49,5 @@ main()
 	// same as: Projection*ModelView*vPosition
 	gl_Position = projection * veyepos;
 	color = vColor;//*ambient;//amb + diff + spec;
+	normal = N;
 }
