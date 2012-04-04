@@ -23,7 +23,7 @@ uniform float Shininess;
 void
 main()
 {
-	vec4 vNormal = vec4(vNormal, 0.0);	
+	vec4 vNormal = vec4(vNormal, 0.0);
     vec4 veyepos = model_view*vPosition;
 	vec3 L = normalize( light_position.xyz - veyepos.xyz);
 	vec3 E = normalize(-veyepos.xyz);
