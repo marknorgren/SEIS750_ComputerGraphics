@@ -1543,6 +1543,7 @@ enum VAO_OBJECTS
 		/* inner wheel */
 		mat4 frontLeftInner = frontLeft;
 		frontLeftInner = frontLeftInner * Translate(0.0, 0.0, -0.9);
+		frontLeftInner = frontLeftInner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeftInner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    
