@@ -159,6 +159,8 @@ enum VAO_OBJECTS
 		NUMBER_OF_VBO_OBJECTS
 	};
 
+#define SHADER_ATTRIBS_PER_OBJECT 7
+
 
 	void Keyboard(unsigned char key, int x, int y) {
 		/*exit when the escape key is pressed*/
@@ -479,32 +481,36 @@ enum VAO_OBJECTS
 		/** POLICE LIGHT OBJECT **/
 	vec4 policeLightVerts[36];
 	vec4 policeLightColors[36];
+	vec3 policeLightNormals[36];
 	void generatePoliceLight(vec4 color){
 		float policeLightSize = 0.3;
 		vec4 policeLightColor = color;
 		for(int i=0; i<6; i++){
 			policeLightColors[i] = policeLightColor; //front
+			policeLightNormals[i] = vec3(0.0,0.0,1.0);
 		}
-		policeLightVerts[0] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[1] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[2] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[3] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[4] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[5] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[0] = vec4(policeLightSize,		-policeLightSize,	policeLightSize, 1.0);
+		policeLightVerts[1] = vec4(policeLightSize,		policeLightSize,	policeLightSize, 1.0);
+		policeLightVerts[2] = vec4(-policeLightSize,	policeLightSize,	policeLightSize, 1.0);
+		policeLightVerts[3] = vec4(-policeLightSize,	policeLightSize,	policeLightSize, 1.0);
+		policeLightVerts[4] = vec4(-policeLightSize,	-policeLightSize,	policeLightSize, 1.0);
+		policeLightVerts[5] = vec4(policeLightSize,		-policeLightSize,	policeLightSize, 1.0);
 
 
 		for(int i=6; i<12; i++){
 			policeLightColors[i] = policeLightColor; //back
+			policeLightNormals[i] = vec3(0.0,0.0,-1.0);
 		}
-		policeLightVerts[6] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[7] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[8] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[9] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[10] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[6] = vec4(-policeLightSize, -policeLightSize,	-policeLightSize, 1.0);
+		policeLightVerts[7] = vec4(-policeLightSize, policeLightSize,	-policeLightSize, 1.0);
+		policeLightVerts[8] = vec4(policeLightSize, policeLightSize,	-policeLightSize, 1.0);
+		policeLightVerts[9] = vec4(policeLightSize, policeLightSize,	-policeLightSize, 1.0);
+		policeLightVerts[10] = vec4(policeLightSize, -policeLightSize,	-policeLightSize, 1.0);
 		policeLightVerts[11] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
 
 		for(int i=12; i<18; i++){
 			policeLightColors[i] = policeLightColor; //left
+			policeLightNormals[i] = vec3(1.0,0.0,0.0);
 		}
 		policeLightVerts[12] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
 		policeLightVerts[13] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
@@ -515,6 +521,7 @@ enum VAO_OBJECTS
 
 		for(int i=18; i<24; i++){
 			policeLightColors[i] = policeLightColor; //right
+			policeLightNormals[i] = vec3(-1.0,0.0,0.0);
 		}
 		policeLightVerts[18] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
 		policeLightVerts[19] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
@@ -525,23 +532,25 @@ enum VAO_OBJECTS
 
 		for(int i=24; i<30; i++){
 			policeLightColors[i] = policeLightColor; //top
+			policeLightNormals[i] = vec3(0.0,1.0,0.0);
 		}
-		policeLightVerts[24] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[25] = vec4(policeLightSize, policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[26] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[27] = vec4(-policeLightSize, policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[28] = vec4(-policeLightSize, policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[29] = vec4(policeLightSize, policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[24] = vec4(policeLightSize,	policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[25] = vec4(policeLightSize,	policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[26] = vec4(-policeLightSize,	policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[27] = vec4(-policeLightSize,	policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[28] = vec4(-policeLightSize,	policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[29] = vec4(policeLightSize,	policeLightSize, policeLightSize, 1.0);
 
 		for(int i=30; i<36; i++){
 			policeLightColors[i] = policeLightColor; //bottom
+			policeLightNormals[i] = vec3(0.0,-1.0,0.0);
 		}
-		policeLightVerts[30] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[31] = vec4(policeLightSize, -policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[32] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[33] = vec4(-policeLightSize, -policeLightSize, policeLightSize, 1.0);
-		policeLightVerts[34] = vec4(-policeLightSize, -policeLightSize, -policeLightSize, 1.0);
-		policeLightVerts[35] = vec4(policeLightSize, -policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[30] = vec4(policeLightSize,	-policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[31] = vec4(policeLightSize,	-policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[32] = vec4(-policeLightSize,	-policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[33] = vec4(-policeLightSize,	-policeLightSize, policeLightSize, 1.0);
+		policeLightVerts[34] = vec4(-policeLightSize,	-policeLightSize, -policeLightSize, 1.0);
+		policeLightVerts[35] = vec4(policeLightSize,	-policeLightSize, -policeLightSize, 1.0);
 	}
 
 	/** CUBE OBJECT **/
@@ -675,6 +684,7 @@ enum VAO_OBJECTS
 	int headlightvertcount;
 	vec4* headlight_verts;
 	vec4* headlight_colors;
+	vec3* headlight_normals;
 	int generateHeadlight(float radius, int subdiv, vec4 color){
 		float step = (360.0/subdiv)*(M_PI/180.0);
 		printf("step: %f\n", step);
@@ -685,11 +695,13 @@ enum VAO_OBJECTS
 			delete[] headlight_verts;
 		}
 
-		/* COLOR */
 		headlight_verts = new vec4[totalverts];
 		headlight_colors = new vec4[totalverts];
-		for(int i=0; i<totalverts; i++){
+		headlight_normals = new vec3[totalverts];
+		/* COLOR, NORMALS */
+		for(int i=0; i<=totalverts; i++){
 			headlight_colors[i] = color; //white
+			headlight_normals[i] = vec3(0.0,0.0,1.0);
 		}
 
 		/* POSITION VERTICES */
@@ -716,11 +728,12 @@ enum VAO_OBJECTS
 		headlight_verts[vert_count] = firstOne;
 		vert_count++;
 		headlight_verts[vert_count] = vec4(0.0f,0.0f,0.0f,1.0);
-
+#define DEBUG 1
 #if DEBUG
 		for (int i=0;i<=totalverts;i++)
 		{
 			printf("headlight-index,%d,x,%f,y,%f,z,%f\n", i, headlight_verts[i][0], headlight_verts[i][1], headlight_verts[i][2]); 
+			printf("  headlightNormal-index,%d,x,%f,y,%f,z,%f\n", i, headlight_normals[i][0], headlight_normals[i][1], headlight_normals[i][2]);
 		}
 #endif
 
@@ -730,21 +743,20 @@ enum VAO_OBJECTS
 	int circlevertcount;
 	vec4* circle_verts;
 	vec4* circle_colors;
+	vec3* circle_normals;
 	int generateCircle(float radius, int subdiv, vec4 color){
 		float step = (360.0/subdiv)*(M_PI/180.0);
 		printf("step: %f\n", step);
 
 		int totalverts = 360+2;//ceil(subdiv/2.0)*subdiv ;
-		printf("totalVerts: %d\n", totalverts);
-		//if(circle_verts){
-		//	delete[] circle_verts;
-		//}
 
 		/* COLOR */
 		circle_verts = new vec4[totalverts];
 		circle_colors = new vec4[totalverts];
-		for(int i=0; i<totalverts; i++){
+		circle_normals = new vec3[totalverts];
+		for(int i=0; i<=totalverts; i++){
 			circle_colors[i] = color; //white
+			circle_normals[i] = vec3(0.0,0.0,1.0);
 		}
 
 		/* POSITION VERTICES */
@@ -786,6 +798,7 @@ enum VAO_OBJECTS
 	int tireTreadvertcount;
 	vec4* tireTread_verts;
 	vec4* tireTread_colors;
+	vec3* tireTread_normals;
 	int generateTireTread(float radius, int subdiv, vec4 color){
 		float step = (360.0/subdiv)*(M_PI/180.0);
 		printf("step: %f\n", step);
@@ -799,6 +812,7 @@ enum VAO_OBJECTS
 		/* COLOR */
 		tireTread_verts = new vec4[totalverts];
 		tireTread_colors = new vec4[totalverts];
+		tireTread_normals = new vec3[totalverts];
 		for(int i=0; i<totalverts; i++){
 			tireTread_colors[i] = color;
 		}
@@ -821,20 +835,27 @@ enum VAO_OBJECTS
 			z = 0.0f;
 
 			tireTread_verts[vert_count] = vec4(x, y, z, 1.0);
+			tireTread_normals[vert_count] = vec3(x,y,z);
 			if (i==0) firstOne = vec4(x, y, z, 1.0);
 			z = 1.0f;
 			vert_count++;
 			tireTread_verts[vert_count] = vec4(x, y, z, 1.0);
+			tireTread_normals[vert_count] = vec3(x,y,z);
 			if (i==0) firstOneOtherHalf = vec4(x, y, z, 1.0);
 			vert_count++;
 		}
 
 		/* finish up triangle strips with firsts */
 		tireTread_verts[vert_count] = firstOne;
+		// why doesn't vec4::xyz work here???
+		tireTread_normals[vert_count] = vec3(firstOne.x, firstOne.y, firstOne.z);
 		vert_count++;
 		tireTread_verts[vert_count] = firstOneOtherHalf;
+		// why doesn't vec4::xyz work here???
+		tireTread_normals[vert_count] = vec3(firstOneOtherHalf.x, firstOneOtherHalf.y, firstOneOtherHalf.z);
 		vert_count++;
 		tireTread_verts[vert_count] = firstOne;
+		tireTread_normals[vert_count] = vec3(firstOne.x, firstOne.y, firstOne.z);
 
 #if DEBUG2
 		for (int i=0;i<=totalverts;i++)
@@ -1034,7 +1055,7 @@ enum VAO_OBJECTS
 		// CUBE
 		// Create and initialize any buffer objects
 		glBindVertexArray( vao[CUBE] );
-		glGenBuffers( 3, &vbo[CUBE_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[CUBE_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1063,7 +1084,7 @@ enum VAO_OBJECTS
 		// Create and initialize any buffer objects
 		generatePoliceLight(vec4(0.0f,0.0f,1.0f,1.0));
 		glBindVertexArray( vao[POLICE_LIGHT] );
-		glGenBuffers( 2, &vbo[POLICE_LIGHT_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[POLICE_LIGHT_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightVerts), policeLightVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1077,6 +1098,13 @@ enum VAO_OBJECTS
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
+		//normal for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightNormals), policeLightNormals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 		/*********************************************************
 		* POLICE LIGHT 2
 		*
@@ -1084,7 +1112,7 @@ enum VAO_OBJECTS
 		// Create and initialize any buffer objects
 		generatePoliceLight(vec4(1.0f,0.0f,0.0f,1.0));
 		glBindVertexArray( vao[POLICE_LIGHT2] );
-		glGenBuffers( 2, &vbo[POLICE_LIGHT_VERTS2] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[POLICE_LIGHT_VERTS2] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_VERTS2] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightVerts), policeLightVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1098,6 +1126,13 @@ enum VAO_OBJECTS
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
+		//normal for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[POLICE_LIGHT_NORMALS2] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(policeLightNormals), policeLightNormals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 		/*********************************************************
 		* CAR
 		*
@@ -1106,7 +1141,7 @@ enum VAO_OBJECTS
 		// Create a vertex array object
 		//glGenVertexArrays( 1, &vao[1] );
 		glBindVertexArray( vao[CAR] );
-		glGenBuffers( 3, &vbo[CAR_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[CAR_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[CAR_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, sizeof(carVerts), carVerts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1139,7 +1174,7 @@ enum VAO_OBJECTS
 		spherevertcount = generateSphere(0.8, 30, vec4(1.0, 0.5, 0.5, 1.0));
 
 		glBindVertexArray( vao[HEAD] );
-		glGenBuffers( 3, &vbo[HEAD_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[HEAD_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1155,7 +1190,7 @@ enum VAO_OBJECTS
 
 		//normals for each vertex
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEAD_NORMALS] );
-		glBufferData( GL_ARRAY_BUFFER,spherevertcount*sizeof(vec4), sphere_normals, GL_STATIC_DRAW );
+		glBufferData( GL_ARRAY_BUFFER,spherevertcount*sizeof(vec3), sphere_normals, GL_STATIC_DRAW );
 		vNormal = glGetAttribLocation(program, "vNormal");
 		glEnableVertexAttribArray(vNormal);
 		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1167,7 +1202,7 @@ enum VAO_OBJECTS
 		spherevertcount = generateSphere(0.1, 30, vec4(0.0, 0.0, 1.0, 1.0));
 
 		glBindVertexArray( vao[EYE] );
-		glGenBuffers( 2, &vbo[EYE_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[EYE_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_verts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1176,7 +1211,7 @@ enum VAO_OBJECTS
 
 		//and now our colors for each vertex
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[EYE_COLORS] );
-		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec4), sphere_colors, GL_STATIC_DRAW );
+		glBufferData( GL_ARRAY_BUFFER, spherevertcount*sizeof(vec3), sphere_colors, GL_STATIC_DRAW );
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1189,7 +1224,7 @@ enum VAO_OBJECTS
 		headlightvertcount = generateHeadlight(0.4, 30, vec4(0.95, 0.95, 0.0, 1.0));
 
 		glBindVertexArray( vao[HEADLIGHT] );
-		glGenBuffers( 2, &vbo[HEADLIGHT_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[HEADLIGHT_VERTS] );
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEADLIGHT_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, headlightvertcount*sizeof(vec4), headlight_verts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1203,6 +1238,14 @@ enum VAO_OBJECTS
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
+		//normals for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[HEADLIGHT_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER,headlightvertcount*sizeof(vec3), headlight_normals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		
+
 		/*********************************************************
 		/** WHEEL 
 		/*********************************************************/
@@ -1210,7 +1253,8 @@ enum VAO_OBJECTS
 		circlevertcount = generateCircle(1.0, 30, vec4(1.0, 1.0, 1.0, 1.0));
 
 		glBindVertexArray( vao[WHEEL] );
-		glGenBuffers( 2, &vbo[WHEEL_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[WHEEL_VERTS] );
+
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[WHEEL_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, circlevertcount*sizeof(vec4), circle_verts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1224,6 +1268,13 @@ enum VAO_OBJECTS
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
+		//normals for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[WHEEL_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER,circlevertcount*sizeof(vec3), circle_normals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 		/*********************************************************
 		/** TIRE TREAD 
 		/*********************************************************/
@@ -1231,7 +1282,8 @@ enum VAO_OBJECTS
 		tireTreadvertcount = generateTireTread(1.0, 30, vec4(0.0, 0.0, 0.0, 1.0));
 
 		glBindVertexArray( vao[TIRETREAD] );
-		glGenBuffers( 2, &vbo[TIRETREAD_VERTS] );
+		glGenBuffers( SHADER_ATTRIBS_PER_OBJECT, &vbo[TIRETREAD_VERTS] );
+
 		glBindBuffer( GL_ARRAY_BUFFER, vbo[TIRETREAD_VERTS] );
 		glBufferData( GL_ARRAY_BUFFER, tireTreadvertcount*sizeof(vec4), tireTread_verts, GL_STATIC_DRAW);
 		vPosition = glGetAttribLocation(program, "vPosition");
@@ -1244,6 +1296,13 @@ enum VAO_OBJECTS
 		vColor = glGetAttribLocation(program, "vColor");
 		glEnableVertexAttribArray(vColor);
 		glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		//normals for each vertex
+		glBindBuffer( GL_ARRAY_BUFFER, vbo[TIRETREAD_NORMALS] );
+		glBufferData( GL_ARRAY_BUFFER,tireTreadvertcount*sizeof(vec3), tireTread_normals, GL_STATIC_DRAW );
+		vNormal = glGetAttribLocation(program, "vNormal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		/*********************************************************
 		/** WHEEL HUBCAP 
@@ -1484,6 +1543,7 @@ enum VAO_OBJECTS
 		/* inner wheel */
 		mat4 frontLeftInner = frontLeft;
 		frontLeftInner = frontLeftInner * Translate(0.0, 0.0, -0.9);
+		frontLeftInner = frontLeftInner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeftInner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    
@@ -1505,8 +1565,8 @@ enum VAO_OBJECTS
 		//allWheelsMatrix = wholeCarMatrix;
 		mat4 frontRight = allWheelsMatrix;
 		frontRight = frontRight * Translate(-2.0, -1.0, -0.7);
-		frontRight = frontRight * RotateY(90+(wheelsTurned*5));
-		frontRight = frontRight * RotateZ(wheelRotation*20);
+		frontRight = frontRight * RotateY(270+(wheelsTurned*5));
+		frontRight = frontRight * RotateZ(-wheelRotation*20);
 
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 		glBindVertexArray( vao[WHEEL] );
@@ -1514,19 +1574,21 @@ enum VAO_OBJECTS
 
 		/* inner wheel */
 		inner = frontRight;
-		inner = inner * Translate(0.0, 0.0, 0.9);
+		inner = inner * Translate(0.0, 0.0, -0.9);
+		inner = inner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );  
+
 		/* HUBCAP */
-		frontRight = frontRight * Translate(0.0,0.0,-0.1);
+		frontRight = frontRight * Translate(0.0,0.0,0.1);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 		glBindVertexArray( vao[HUBCAP] );
 		glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 		/* draw tire tread - FRONT RIGHT */
 		mat4 frontRightTread = frontRight;
-		frontRightTread = frontRightTread * Translate(0.0, 0.0, 0.0);
+		frontRightTread = frontRightTread * Translate(0.0, 0.0, -1.0);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRightTread);
 		glBindVertexArray( vao[TIRETREAD] );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
@@ -1542,6 +1604,7 @@ enum VAO_OBJECTS
 		/* inner wheel */
 		inner = backLeft;
 		inner = inner * Translate(0.0, 0.0, -0.9);
+		inner = inner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );
@@ -1562,25 +1625,26 @@ enum VAO_OBJECTS
 		mat4 backRight = allWheelsMatrix;
 		backRight = backRight * Translate(-2.0, -1.0, 0.7 - (CAR_LENGTH));
 		backRight = backRight * RotateX(wheelRotation*20);
-		backRight = backRight * RotateY(90);
+		backRight = backRight * RotateY(270);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 		/* inner wheel */
 		inner = backRight;
-		inner = inner * Translate(0.0, 0.0, 0.9);
+		inner = inner * Translate(0.0, 0.0, -0.9);
+		inner = inner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );
 		/* HUBCAP */
-		backRight = backRight * Translate(0.0,0.0,-0.1);
+		backRight = backRight * Translate(0.0,0.0,0.1);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 		glBindVertexArray( vao[HUBCAP] );
 		glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 		/* draw tire tread - BACK RIGHT */
 		mat4 backRightTread = backRight;
-		backRightTread = backRightTread * Translate(0.0, 0.0, 0.0);
+		backRightTread = backRightTread * Translate(0.0, 0.0, -1.0);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, backRightTread);
 		glBindVertexArray( vao[TIRETREAD] );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
