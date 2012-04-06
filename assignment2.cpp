@@ -56,6 +56,19 @@ vec4 cameraLookAtEye	= vec4(0, 20, cameraPosition_Dolly, 1.0);
 float fov = DEFAULT_FOV;
 float fovStaticCameraSetting = DEFAULT_FOV;
 
+enum LIGHTS
+{
+	HEADLIGHT_LEFT,
+	HEADLIGHT_RIGHT,
+	POLICE_LIGHT_RED,
+	POLICE_LIGHT_GREEEN,
+	NUMBER_OF_LIGHTS
+};
+
+vec4 lightPosition[NUMBER_OF_LIGHTS];
+vec4 lightDirection[NUMBER_OF_LIGHTS];
+vec4 lightIntensity[NUMBER_OF_LIGHTS]; // i.e. - light color
+float cutoffAngle[NUMBER_OF_LIGHTS]; // RADIANS!!
 
 //and we'll need pointers to our shader variables
 GLuint model_view;
@@ -72,6 +85,10 @@ GLuint ambient_light;
 GLuint light_position;
 GLuint light_color;
 
+GLuint Kd;
+GLuint Ks;
+GLuint Ka;
+GLuint Shininess;
 
 GLfloat carHeading = 0.0f;
 GLfloat rotateHead = 0.0f;
@@ -88,19 +105,7 @@ GLfloat wheelRotation = 0.0f;
 #define STAGE_WIDTH 100.0f
 #define STAGE_DEPTH 100.0f
 
-enum LIGHTS
-{
-	HEADLIGHT_LEFT,
-	HEADLIGHT_RIGHT,
-	POLICE_LIGHT_RED,
-	POLICE_LIGHT_GREEEN,
-	NUMBER_OF_LIGHTS
-};
 
-vec4 lightPosition[NUMBER_OF_LIGHTS];
-vec4 lightDirection[NUMBER_OF_LIGHTS];
-vec4 lightIntensity[NUMBER_OF_LIGHTS]; // i.e. - light color
-float cutoffAngle[NUMBER_OF_LIGHTS]; // RADIANS!!
 
 enum VAO_OBJECTS
 {
@@ -1027,6 +1032,13 @@ void setupShader(GLuint prog){
 	light_position = glGetUniformLocation(prog, "light_position");
 	light_color = glGetUniformLocation(prog, "light_color");
 	ambient_light = glGetUniformLocation(prog, "ambient_light");
+	//Uniforms - Kd, Ks, Ka, Shininess
+	Kd = glGetUniformLocation(prog, "Kd");
+	Ks = glGetUniformLocation(prog, "Ks");
+	Ka = glGetUniformLocation(prog, "Ka");
+
+	
+
 
 	glBindVertexArray( vao[0] );
 
@@ -1388,8 +1400,16 @@ void display(void)
 	glVertexAttrib4fv(vSpecularColor, vec4(1.0f,1.0f,1.0f,1.0f));
 	glVertexAttrib1f(vSpecularExponent, 10.0);
 
+	// glUniform3fv(location, count, value)
+	glUniform3fv(Ka, 1, vec3(0.7f,0.7f,0.7f));
+	glUniform3fv(Ks, 1, vec3(0.9f,0.9f,0.9f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
+	// glUniform1(loc,val)
+	glUniform1f(Shininess, 180.0f);
+
 	glUniform4fv(light_color, 1, vec4(1,1,1,1));
 	glUniform4fv(ambient_light, 1, vec4(1.0, 1.0, 1.0, 5));
+
 
 	switch (current_state)
 	{

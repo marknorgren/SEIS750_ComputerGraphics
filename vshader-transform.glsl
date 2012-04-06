@@ -18,6 +18,8 @@ in float vSpecularExponent;
 out vec4 color;
 out vec4 ambient;
 out vec3 normal;
+out vec3 position;
+out vec3 vN;
 
 uniform vec3 AmbientProduct, DiffiuseProduct, SpecularProduct;
 uniform mat4 model_view;
@@ -37,16 +39,11 @@ main()
 	vec3 E = normalize(-veyepos.xyz);
 	vec3 H = normalize(L+E);
 
-	vec3 N = normalize(model_view * vNormal).xyz;
-	ambient = vAmbientDiffuseColor * ambient_light;
-	vec4 diffuse = max(dot(L,N), 0.0) * vAmbientDiffuseColor * light_color;
-	vec4 specular = pow( max (dot(N,H), 0.0), vSpecularExponent) *  vSpecularColor * light_color  ;
-	if(dot(L,N) < 0.0){
-		specular = vec4(0,0,0,1);
-	}
+	vN = normalize(model_view * vNormal).xyz;
+
 	//spec = vec4(1,1,1,1);
 	// same as: Projection*ModelView*vPosition
 	gl_Position = projection * veyepos;
 	color = vColor;//*ambient;//amb + diff + spec;
-	normal = N;
+	
 }

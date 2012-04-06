@@ -2,6 +2,8 @@
 in vec4 color;
 in vec4 ambient;
 in vec3 normal;
+in vec3 position;
+in vec3 vN;
 
 out vec4  fColor;
 
@@ -19,9 +21,23 @@ uniform float Shininess;    // Specular shininess factor
 
 void main()
 {
+	vec3 L = normalize( light_position.xyz - position.xyz);
+	vec3 E = normalize(-position.xyz);
+	vec3 N = normalize(vN);
+
+	vec3 H = normalize(L+E);
+	vec4 amb = vec4((Kd + Ka),1.0) * ambient_light;
+	vec4 diff = max(dot(L,N), 0.0) *  vec4((Kd + Ka),1.0) * light_color;
+	vec4 spec = pow( max (dot(N,H), 0.0), Shininess) *  vec4(Ks,1.0) * light_color  ;
+	if(dot(L,N) < 0.0){
+		spec = vec4(0,0,0,1);
+	}
+
+	fColor = amb + diff + spec;
+
     //fColor = color;
 	// test for normal values
 	// same normal values should have same color value
 	//fColor = vec4(normal, 1.0);//color * ambient;
-	fColor = color * ambient;
+	//fColor = color * ambient;
 }
