@@ -5,11 +5,17 @@ in vec3 normal;
 
 out vec4  fColor;
 
+uniform vec3 AmbientProduct, DiffiuseProduct, SpecularProduct;
 uniform mat4 model_view;
 uniform mat4 projection;
 uniform vec4 light_position;
 uniform vec4 light_color;
 uniform vec4 ambient_light;
+
+uniform vec3 Kd;            // Diffuse reflectivity
+uniform vec3 Ka;            // Ambient reflectivity
+uniform vec3 Ks;            // Specular reflectivity
+uniform float Shininess;    // Specular shininess factor
 
 void main()
 {

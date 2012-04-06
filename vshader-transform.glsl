@@ -1,6 +1,5 @@
 #version 150
 
-
 in vec4 vPosition;
 in vec3 vNormal;
 in vec4 vColor;
@@ -20,7 +19,7 @@ out vec4 color;
 out vec4 ambient;
 out vec3 normal;
 
-uniform vec4 AmbientProduct, DiffiuseProduct, SpecularProduct;
+uniform vec3 AmbientProduct, DiffiuseProduct, SpecularProduct;
 uniform mat4 model_view;
 uniform mat4 projection;
 uniform vec4 light_position;
