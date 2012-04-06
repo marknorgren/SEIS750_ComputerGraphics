@@ -40,10 +40,12 @@ main()
 	vec3 H = normalize(L+E);
 
 	vN = normalize(model_view * vNormal).xyz;
-
+	normal = vN;
 	//spec = vec4(1,1,1,1);
 	// same as: Projection*ModelView*vPosition
+	
 	gl_Position = projection * veyepos;
+	position = veyepos.xyz;
 	color = vColor;//*ambient;//amb + diff + spec;
 	
 }

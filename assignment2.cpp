@@ -1401,14 +1401,14 @@ void display(void)
 	glVertexAttrib1f(vSpecularExponent, 10.0);
 
 	// glUniform3fv(location, count, value)
-	glUniform3fv(Ka, 1, vec3(0.7f,0.7f,0.7f));
-	glUniform3fv(Ks, 1, vec3(0.9f,0.9f,0.9f));
+	glUniform3fv(Ka, 1, vec3(0.2f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	// glUniform1(loc,val)
 	glUniform1f(Shininess, 180.0f);
 
-	glUniform4fv(light_color, 1, vec4(1,1,1,1));
-	glUniform4fv(ambient_light, 1, vec4(1.0, 1.0, 1.0, 5));
+	glUniform4fv(light_color, 1, vec4(.4,.4,.4,1));
+	glUniform4fv(ambient_light, 1, vec4(0.2, 0.2, 0.2, 5));
 
 
 	switch (current_state)
@@ -1587,6 +1587,9 @@ void display(void)
 	/* draw tire tread - FRONT LEFT */
 	mat4 frontLeftTread = frontLeft;
 	frontLeftTread = frontLeftTread * Translate(0.0, 0.0, -1.0);
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeftTread);
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
@@ -1619,6 +1622,9 @@ void display(void)
 	/* draw tire tread - FRONT RIGHT */
 	mat4 frontRightTread = frontRight;
 	frontRightTread = frontRightTread * Translate(0.0, 0.0, -1.0);
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRightTread);
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
@@ -1647,6 +1653,9 @@ void display(void)
 	/* draw tire tread - BACK LEFT */
 	mat4 backLeftTread = backLeft;
 	backLeftTread = backLeftTread * Translate(0.0, 0.0, -1.0);
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeftTread);
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
@@ -1676,12 +1685,20 @@ void display(void)
 	mat4 backRightTread = backRight;
 	backRightTread = backRightTread * Translate(0.0, 0.0, -1.0);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRightTread);
+	// glUniform3fv(location, count, value)
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
 
 	/* draw stage */
 	mv = cameraMatrix;
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+	// glUniform3fv(location, count, value)
+	glUniform3fv(Ka, 1, vec3(0.2f,0.2f,0.2f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glBindVertexArray( vao[STAGE] );
 	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the sphere
 
@@ -1689,8 +1706,7 @@ void display(void)
 
 	/* camera position */
 	p = Perspective(fov, (float)ww/(float)wh, 1.0, 200.0);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-	glUniformMatrix4fv(projection, 1, GL_TRUE, p);
+	
 
 	glFlush();
 	MRKCheckError();
