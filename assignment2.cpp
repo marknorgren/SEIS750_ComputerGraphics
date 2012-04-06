@@ -1565,8 +1565,8 @@ enum VAO_OBJECTS
 		//allWheelsMatrix = wholeCarMatrix;
 		mat4 frontRight = allWheelsMatrix;
 		frontRight = frontRight * Translate(-2.0, -1.0, -0.7);
-		frontRight = frontRight * RotateY(90+(wheelsTurned*5));
-		frontRight = frontRight * RotateZ(wheelRotation*20);
+		frontRight = frontRight * RotateY(270+(wheelsTurned*5));
+		frontRight = frontRight * RotateZ(-wheelRotation*20);
 
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 		glBindVertexArray( vao[WHEEL] );
@@ -1574,19 +1574,21 @@ enum VAO_OBJECTS
 
 		/* inner wheel */
 		inner = frontRight;
-		inner = inner * Translate(0.0, 0.0, 0.9);
+		inner = inner * Translate(0.0, 0.0, -0.9);
+		inner = inner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );  
+
 		/* HUBCAP */
-		frontRight = frontRight * Translate(0.0,0.0,-0.1);
+		frontRight = frontRight * Translate(0.0,0.0,0.1);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 		glBindVertexArray( vao[HUBCAP] );
 		glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 		/* draw tire tread - FRONT RIGHT */
 		mat4 frontRightTread = frontRight;
-		frontRightTread = frontRightTread * Translate(0.0, 0.0, 0.0);
+		frontRightTread = frontRightTread * Translate(0.0, 0.0, -1.0);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRightTread);
 		glBindVertexArray( vao[TIRETREAD] );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
@@ -1602,6 +1604,7 @@ enum VAO_OBJECTS
 		/* inner wheel */
 		inner = backLeft;
 		inner = inner * Translate(0.0, 0.0, -0.9);
+		inner = inner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );
@@ -1622,25 +1625,26 @@ enum VAO_OBJECTS
 		mat4 backRight = allWheelsMatrix;
 		backRight = backRight * Translate(-2.0, -1.0, 0.7 - (CAR_LENGTH));
 		backRight = backRight * RotateX(wheelRotation*20);
-		backRight = backRight * RotateY(90);
+		backRight = backRight * RotateY(270);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 		/* inner wheel */
 		inner = backRight;
-		inner = inner * Translate(0.0, 0.0, 0.9);
+		inner = inner * Translate(0.0, 0.0, -0.9);
+		inner = inner * RotateY(180);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, inner);
 		glBindVertexArray( vao[WHEEL] );
 		glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );
 		/* HUBCAP */
-		backRight = backRight * Translate(0.0,0.0,-0.1);
+		backRight = backRight * Translate(0.0,0.0,0.1);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 		glBindVertexArray( vao[HUBCAP] );
 		glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 		/* draw tire tread - BACK RIGHT */
 		mat4 backRightTread = backRight;
-		backRightTread = backRightTread * Translate(0.0, 0.0, 0.0);
+		backRightTread = backRightTread * Translate(0.0, 0.0, -1.0);
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, backRightTread);
 		glBindVertexArray( vao[TIRETREAD] );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
