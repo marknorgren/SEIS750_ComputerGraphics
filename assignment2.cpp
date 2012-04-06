@@ -84,6 +84,10 @@ GLuint ambient_light;
 
 GLuint light_position;
 GLuint light_color;
+GLuint light_direction;
+GLuint light_intensity;
+GLuint light_exponent; 
+GLuint light_cutoff; 
 
 GLuint Kd;
 GLuint Ks;
@@ -1030,6 +1034,10 @@ void setupShader(GLuint prog){
 	vSpecularColor = glGetAttribLocation(prog, "vSpecularColor");
 	vSpecularExponent = glGetAttribLocation(prog, "vSpecularExponent");
 	light_position = glGetUniformLocation(prog, "light_position");
+	light_direction = glGetUniformLocation(prog, "light_direction");
+	light_intensity = glGetUniformLocation(prog, "light_intensity");
+	light_exponent = glGetUniformLocation(prog, "light_exponent");
+	light_cutoff = glGetUniformLocation(prog, "light_cutoff");
 	light_color = glGetUniformLocation(prog, "light_color");
 	ambient_light = glGetUniformLocation(prog, "ambient_light");
 	//Uniforms - Kd, Ks, Ka, Shininess
@@ -1404,6 +1412,12 @@ void display(void)
 	glUniform3fv(Ka, 1, vec3(0.2f,0.0f,0.0f));
 	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
+
+	//spotlight
+	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
+	glUniform1f(light_exponent, 30.0f);
+	glUniform1f(light_cutoff, 15.0f);
+
 	// glUniform1(loc,val)
 	glUniform1f(Shininess, 180.0f);
 
@@ -1532,6 +1546,15 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	glBindVertexArray( vao[HEADLIGHT] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
+	vec4 light_direction_vector = vec4(1, -0.1, 0, 0);
+	vec4 light_direction_vector_mv = headlightMatrix * -light_direction_vector;
+	vec4 light_position_test = vec4(0.0,0.0,0.0,1.0);
+	light_position_test =	headlightMatrix * light_position_test;
+	printf("light_position_test: %f,%f,%f,%f\n", light_position_test.x,light_position_test.y,light_position_test.z,light_position_test.w);
+	//light_direction_vector_mv = light_direction_vector_mv * -1;
+	glUniform3fv(light_position, 1, light_position_test);
+	glUniform3fv(light_direction, 1, light_direction_vector_mv);
+
 	/* right headlight */
 	headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
 	//headlightMatrix = headlightMatrix * RotateY(90);
