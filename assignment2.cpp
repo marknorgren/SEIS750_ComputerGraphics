@@ -73,6 +73,7 @@ float cutoffAngle[NUMBER_OF_LIGHTS]; // RADIANS!!
 //and we'll need pointers to our shader variables
 GLuint model_view;
 GLuint projection;
+GLuint NormalMatrix;
 GLuint vPosition;
 GLuint vColor;
 
@@ -1386,6 +1387,7 @@ void init() {
 	//grab pointers for our modelview and perspecive uniform matrices
 	model_view = glGetUniformLocation(program, "model_view");
 	projection = glGetUniformLocation(program, "projection");
+	NormalMatrix = glGetUniformLocation(program, "NormalMatrix");
 
 	//Only draw the things in the front layer
 	glEnable(GL_DEPTH_TEST);
@@ -1407,6 +1409,9 @@ void display(void)
 	glVertexAttrib4fv(vAmbientDiffuseColor, vec4(.3, .3, .3, 1));
 	glVertexAttrib4fv(vSpecularColor, vec4(1.0f,1.0f,1.0f,1.0f));
 	glVertexAttrib1f(vSpecularExponent, 10.0);
+
+	// NormalMatrix
+	//glUniform3fv(NormalMatrix, 1, mat3( vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
 
 	// glUniform3fv(location, count, value)
 	glUniform3fv(Ka, 1, vec3(0.2f,0.0f,0.0f));
@@ -1540,24 +1545,63 @@ void display(void)
 	glBindVertexArray( vao[POLICE_LIGHT2] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
 
+	/**************************************************************************** HEADLIGHTS */
+	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	/* left headlight */
 	headlightMatrix = wholeCarMatrix * Translate(0.7,0.4,0.01);
-	//headlightMatrix = headlightMatrix * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
-	glBindVertexArray( vao[HEADLIGHT] );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
-	vec4 light_direction_vector = vec4(1, -0.1, 0, 0);
-	vec4 light_direction_vector_mv = headlightMatrix * -light_direction_vector;
-	vec4 light_position_test = vec4(0.0,0.0,0.0,1.0);
-	light_position_test =	headlightMatrix * light_position_test;
-	printf("light_position_test: %f,%f,%f,%f\n", light_position_test.x,light_position_test.y,light_position_test.z,light_position_test.w);
-	//light_direction_vector_mv = light_direction_vector_mv * -1;
-	glUniform3fv(light_position, 1, light_position_test);
+	// light direction = negative z direction, slight negative y
+	vec4 light_direction_vector = vec4(0.0, -0.12, 0.5f, 0.0);
+	// headlightMatrix applied to light_direction_vector
+	vec4 light_direction_vector_mv = headlightMatrix * light_direction_vector;
+	// set light_position to the origin of the headlightMatrix
+	vec4 light_position_headlight = vec4(0.0,0.0,0.0,1.0);
+	// get the light position translated - headlightMatrix coordinates
+	light_position_headlight =	headlightMatrix * light_position_headlight;
+	printf("light_position_headlight: %f,%f,%f,%f\n", 
+		light_position_headlight.x,
+		light_position_headlight.y,
+		light_position_headlight.z,
+		light_position_headlight.w);
+	printf("light_direction_headlight: %f,%f,%f,%f\n", 
+		light_direction_vector_mv.x,
+		light_direction_vector_mv.y,
+		light_direction_vector_mv.z,
+		light_direction_vector_mv.w);
+	
+	glUniform4fv(light_position, 1, light_position_headlight);
 	glUniform3fv(light_direction, 1, light_direction_vector_mv);
+	glBindVertexArray(vao[HEADLIGHT]);
+	glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
+	
+
 
 	/* right headlight */
 	headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
-	//headlightMatrix = headlightMatrix * RotateY(90);
+	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
+	// light direction = negative z direction, slight negative y
+	light_direction_vector = vec4(0.0, -0.12, 0.5f, 0.0);
+	// headlightMatrix applied to light_direction_vector
+	light_direction_vector_mv = headlightMatrix * light_direction_vector;
+	// set light_position to the origin of the headlightMatrix
+	light_position_headlight = vec4(0.0,0.0,0.0,1.0);
+	// get the light position translated - headlightMatrix coordinates
+	light_position_headlight =	headlightMatrix * light_position_headlight;
+	printf("light_position_headlight: %f,%f,%f,%f\n", 
+		light_position_headlight.x,
+		light_position_headlight.y,
+		light_position_headlight.z,
+		light_position_headlight.w);
+	printf("light_direction_headlight: %f,%f,%f,%f\n", 
+		light_direction_vector_mv.x,
+		light_direction_vector_mv.y,
+		light_direction_vector_mv.z,
+		light_direction_vector_mv.w);
+	
+	glUniform4fv(light_position, 1, light_position_headlight);
+	glUniform3fv(light_direction, 1, light_direction_vector_mv);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	glBindVertexArray( vao[HEADLIGHT] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights

@@ -24,11 +24,11 @@ out vec3 vN;
 uniform vec3 AmbientProduct, DiffiuseProduct, SpecularProduct;
 uniform mat4 model_view;
 uniform mat4 projection;
+uniform mat3 NormalMatrix;
 uniform vec4 light_position;
 uniform vec4 light_color;
 uniform vec4 ambient_light;
 uniform float Shininess;
-
 
 void
 main()
@@ -45,7 +45,8 @@ main()
 	// same as: Projection*ModelView*vPosition
 	
 	gl_Position = projection * veyepos;
-	position = veyepos.xyz;
+	//position = veyepos.xyz;
+	position = vec3(model_view * vPosition);
 	color = vColor;//*ambient;//amb + diff + spec;
 	
 }

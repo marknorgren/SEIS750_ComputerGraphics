@@ -31,13 +31,13 @@ vec3 spotlight_fucntion()
 
 	vec3 s = normalize(vec3(light_position) - position);
 	vec3 spotDir = normalize(light_direction);
-	//SAME - float angle = acos(dot(-s,light_direction));
-	float angle = acos( dot(-L, light_direction));
-	float cutoff = radians( clamp(light_cutoff, 0.0, 90.0) );
+	//SAME - float angle = acos(dot(-s,spotDir));
+	float angle = acos( dot(-s, spotDir));
+	float cutoff = radians( clamp(light_cutoff, 0.0, 45.0) );
 	vec3 spot_ambient = light_intensity * Ka;
 
 	if ( angle < cutoff) {
-		float spotFactor = pow( dot(-s, light_direction), light_exponent);
+		float spotFactor = pow( dot(-s, spotDir), light_exponent);
 		vec3 v = normalize(vec3(-position));
 		vec3 h = normalize(v + s);
 
