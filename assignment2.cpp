@@ -65,6 +65,8 @@ enum LIGHTS
 	NUMBER_OF_LIGHTS
 };
 
+bool policeLightsOn;
+
 vec4 lightPositions[NUMBER_OF_LIGHTS];
 vec4 lightDirections[NUMBER_OF_LIGHTS];
 vec4 lightIntensities[NUMBER_OF_LIGHTS]; // i.e. - light color
@@ -88,6 +90,7 @@ GLuint vAmbient;
 GLuint vDiffuse;
 GLuint vSpecular;
 GLuint ambient_light;
+GLuint scene_light_color;
 
 GLuint light_position;
 GLuint light_color;
@@ -358,7 +361,7 @@ void Keyboard(unsigned char key, int x, int y) {
 				rz -= 360;
 			break;
 		}
-	case 'l':
+	case '[':
 		{
 			rz -= 5;
 			if(rz < 0)
@@ -383,6 +386,10 @@ void Keyboard(unsigned char key, int x, int y) {
 			drivingBackward = false;
 			drivingForward = false;
 			break;
+		}
+	case 'l':
+		{
+			policeLightsOn ? (policeLightsOn=false) : (policeLightsOn=true);
 		}
 
 	} //switch end
@@ -1083,6 +1090,7 @@ void setupShader(GLuint prog){
 	light_cutoff = glGetUniformLocation(prog, "light_cutoff");
 	light_color = glGetUniformLocation(prog, "light_color");
 	ambient_light = glGetUniformLocation(prog, "ambient_light");
+	scene_light_color = glGetUniformLocation(prog, "scene_light_color");
 
 	
 	rightHeadlight_position = glGetUniformLocation(prog, "rightHeadlight_position");
@@ -1129,6 +1137,9 @@ void setupShader(GLuint prog){
 }
 
 void init() {
+
+	policeLightsOn = false;
+
 	/*select clearing (background) color*/
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 
@@ -1497,21 +1508,17 @@ void display(void)
 	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 
-	//spotlight
-	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
-	glUniform1f(light_exponent, 30.0f);
-	glUniform1f(light_cutoff, 15.0f);
-
 	// glUniform1(loc,val)
-	glUniform1f(Shininess, 180.0f);
+	glUniform1f(Shininess, 360.0f);
 
 	glUniform4fv(light_color, 1, vec4(1.0,1.0,1.0,1));
 	//spotlight
 	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
 	glUniform1f(light_exponent, 30.0f);
 	glUniform1f(light_cutoff, 15.0f);
-	glUniform4fv(ambient_light, 1, vec4(0.2, 0.2, 0.2, 5));
-	glUniform4fv(rightHeadlight_color, 1, vec4(.4,.4,.4,1));
+	glUniform4fv(ambient_light, 1, vec4(0.1, 0.1, 0.1, 1.0));
+	glUniform4fv(scene_light_color, 1, vec4(0.3,0.3,0.3,1.0));
+	glUniform4fv(rightHeadlight_color, 1, vec4(1.0,1.0,1.0,1));
 
 
 	switch (current_state)
@@ -1552,7 +1559,7 @@ void display(void)
 	/* CORNER CUBES */
 	// glUniform3fv(location, count, value)
 	glUniform3fv(Ka, 1, vec3(1.0,0.2,0.0));
-	glUniform3fv(Ks, 1, vec3(1.0f,0.2f,0.0));
+	glUniform3fv(Ks, 1, vec3(1.0f,0.2f,1.0));
 	glUniform3fv(Kd, 1, vec3(1.0,0.2,0.0));
 
 	/* cube 1 */
@@ -1592,6 +1599,9 @@ void display(void)
 		glUniformMatrix4fv(model_view, 1, GL_TRUE, cubeView);
 		glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 		glBindVertexArray( vao[0] );
+		glUniform3fv(Ka, 1, vec3(1.0,0.2,0.0));
+		glUniform3fv(Ks, 1, vec3(1.0f,0.2f,1.0));
+		glUniform3fv(Kd, 1, vec3(1.0,0.2,0.0));
 		glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the cube
 
 		cubeView = cameraMatrix;
@@ -1633,15 +1643,19 @@ void display(void)
 	policeLightMatrix = policeLightMatrix * Translate(0.6, 1.4, -4.7);
 	policeLightRotationMatrix = policeLightRotationMatrix * RotateY(policeLightRotation);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
-
-	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(1.5, -0.8, 0.0f, 0.0);
-	// headlightMatrix applied to light_direction_vector
-	light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
-	// set light_position to the origin of the headlightMatrix
-	vec4 light_position_point = vec4(0.0,0.0,0.0,1.0);
-	// get the light position translated - headlightMatrix coordinates
-	light_position_point =	policeLightMatrix * light_position_point;
+	vec4 light_position_point;
+	if (policeLightsOn)
+	{
+		// light direction = negative z direction, slight negative y
+		light_direction_vector = vec4(1.5, -0.8, 0.0f, 0.0);
+		// headlightMatrix applied to light_direction_vector
+		light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
+		// set light_position to the origin of the headlightMatrix
+		light_position_point = vec4(0.0,0.0,0.0,1.0);
+		// get the light position translated - headlightMatrix coordinates
+		light_position_point =	policeLightMatrix * light_position_point;
+	}
+	else light_position_point = vec4(0.0,-100.0,0.0,1.0);
 	
 	glUniform4fv(policeLight1_position,		1,	light_position_point);
 	glUniform3fv(policeLight1_direction,	1,	light_direction_vector_mv);
@@ -1671,14 +1685,19 @@ void display(void)
 	policeLightMatrix = policeLightMatrix * Translate(-0.6, 1.4, -4.7);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
 
-	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(-1.5, -0.8, 0.0f, 0.0);
-	// headlightMatrix applied to light_direction_vector
-	light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
-	// set light_position to the origin of the headlightMatrix
-	light_position_point = vec4(0.0,0.0,0.0,1.0);
-	// get the light position translated - headlightMatrix coordinates
-	light_position_point =	policeLightMatrix * light_position_point;
+	if (policeLightsOn)
+	{
+		// light direction = negative z direction, slight negative y
+		light_direction_vector = vec4(-1.5, -0.8, 0.0f, 0.0);
+		// headlightMatrix applied to light_direction_vector
+		light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
+		// set light_position to the origin of the headlightMatrix
+		light_position_point = vec4(0.0,0.0,0.0,1.0);
+		// get the light position translated - headlightMatrix coordinates
+		light_position_point =	policeLightMatrix * light_position_point;
+	}
+	else light_position_point = vec4(0.0,-100.0,0.0,1.0);
+	
 	
 	glUniform4fv(policeLight2_position,		1,	light_position_point);
 	glUniform3fv(policeLight2_direction,	1,	light_direction_vector_mv);
@@ -1749,10 +1768,9 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headMatrix);
 	glBindVertexArray( vao[HEAD] );
 	// glUniform3fv(location, count, value)
-	vec3 headColor = vec3(1.0, 0.5, 0.5);//vec3(sphere_colors[1].x, sphere_colors[1].y, sphere_colors[1].z);
-	glUniform3fv(Ka, 1, vec3(0.5f,0.5f,0.5f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
-	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
+	glUniform3fv(Ka, 1, vec3(1.0,0.4,0.0));
+	glUniform3fv(Ks, 1, vec3(1.0f,0.2f,0.0));
+	glUniform3fv(Kd, 1, vec3(1.0,0.2,0.0));
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 	/* draw eyes */
@@ -1760,8 +1778,8 @@ void display(void)
 	eyeMat = headMatrix * Translate(-.2, .3, .8);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
 	glBindVertexArray( vao[EYE] );
-	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.5f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.2f));
+	glUniform3fv(Ks, 1, vec3(0.1f,0.1f,0.1f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
@@ -1780,8 +1798,8 @@ void display(void)
 	frontLeft = frontLeft * RotateZ(wheelRotation*20);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
 	glBindVertexArray( vao[WHEEL] );
-	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ka, 1, vec3(0.2f,0.2f,0.2f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 
@@ -1798,7 +1816,7 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
 	glBindVertexArray( vao[HUBCAP] );
 	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
@@ -1821,8 +1839,8 @@ void display(void)
 
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 	glBindVertexArray( vao[WHEEL] );
-	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ka, 1, vec3(0.2f,0.2f,0.2f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
@@ -1863,8 +1881,8 @@ void display(void)
 	backLeft = backLeft * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
 	glBindVertexArray( vao[WHEEL] );
-	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ka, 1, vec3(0.2f,0.2f,0.2f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 	/* inner wheel */
@@ -1901,8 +1919,8 @@ void display(void)
 	backRight = backRight * RotateY(270);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 	glBindVertexArray( vao[WHEEL] );
-	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
-	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ka, 1, vec3(0.2f,0.2f,0.2f));
+	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 	/* inner wheel */
