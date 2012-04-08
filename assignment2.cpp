@@ -461,6 +461,8 @@ void generateCar() {
 	for(int i=6; i<12; i++){
 		carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //back
 		carNormals[i] = vec3(0.0,0.0,-1.0);
+		carMaterialSpecular[i] = carMaterialDiffuse[i] = carMaterialAmbient[i] = 
+			vec3(carColors[i].x,carColors[i].y,carColors[i].z);
 	}
 	//				X						Y					Z
 	carVerts[6] = vec4(-(CAR_WIDTH/2),	-(CAR_HEIGHT/2),	-(CAR_LENGTH), 1.0);
@@ -473,6 +475,8 @@ void generateCar() {
 	for(int i=12; i<18; i++){
 		carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //right
 		carNormals[i] = vec3(1.0,0.0,0.0);
+		carMaterialSpecular[i] = carMaterialDiffuse[i] = carMaterialAmbient[i] = 
+			vec3(carColors[i].x,carColors[i].y,carColors[i].z);
 	}
 	carVerts[12] = vec4(1.0f, 1.0f,		0.0f,			1.0);
 	carVerts[13] = vec4(1.0f, -1.0f,	0.0f,			1.0);
@@ -484,6 +488,8 @@ void generateCar() {
 	for(int i=18; i<24; i++){
 		carColors[i] = vec4(0.0, 0.0, 0.0, 1.0); //left
 		carNormals[i] = vec3(-1.0,0.0,0.0);
+		carMaterialSpecular[i] = carMaterialDiffuse[i] = carMaterialAmbient[i] = 
+			vec3(carColors[i].x,carColors[i].y,carColors[i].z);
 	}
 	carVerts[18] = vec4(-1.0f, 1.0f,	-(CAR_LENGTH),		1.0);
 	carVerts[19] = vec4(-1.0f, -1.0f,	-(CAR_LENGTH),		1.0);
@@ -1631,7 +1637,10 @@ void display(void)
 	glUniform4fv(policeLight1_color,		1,	vec4(1.0,1.0,1.0,1));
 	glUniform3fv(policeLight1_intensity,	1,	vec3(1.0,0.0,0.0));
 	
-
+	// glUniform3fv(location, count, value)
+	glUniform3fv(Ka, 1, vec3(1.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(1.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(1.0f,0.0f,0.0f));
 
 
 
@@ -1642,6 +1651,10 @@ void display(void)
 	policeLightMatrix = policeLightMatrix * Translate(-0.6, 1.4, -4.7);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
 	glBindVertexArray( vao[POLICE_LIGHT2] );
+	// glUniform3fv(location, count, value)
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,1.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,1.0f));
+	glUniform3fv(Kd, 1, vec3(0.0f,0.0f,1.0f));
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
 
 	/**************************************************************************** HEADLIGHTS */
@@ -1677,8 +1690,6 @@ void display(void)
 	glBindVertexArray(vao[HEADLIGHT]);
 	glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
 	
-
-
 	/* right headlight */
 	headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
@@ -1702,6 +1713,11 @@ void display(void)
 	headMatrix = headMatrix * RotateY(rotateHead);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headMatrix);
 	glBindVertexArray( vao[HEAD] );
+	// glUniform3fv(location, count, value)
+	vec3 headColor = vec3(1.0, 0.5, 0.5);//vec3(sphere_colors[1].x, sphere_colors[1].y, sphere_colors[1].z);
+	glUniform3fv(Ka, 1, vec3(0.5f,0.5f,0.5f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 	/* draw eyes */
@@ -1709,6 +1725,9 @@ void display(void)
 	eyeMat = headMatrix * Translate(-.2, .3, .8);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, eyeMat);
 	glBindVertexArray( vao[EYE] );
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.5f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, spherevertcount );    // draw the sphere
 
 	eyeMat = headMatrix;
@@ -1726,6 +1745,9 @@ void display(void)
 	frontLeft = frontLeft * RotateZ(wheelRotation*20);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
 	glBindVertexArray( vao[WHEEL] );
+	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 
 	/* inner wheel */
@@ -1740,6 +1762,9 @@ void display(void)
 	frontLeft = frontLeft * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontLeft);
 	glBindVertexArray( vao[HUBCAP] );
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw tire tread - FRONT LEFT */
@@ -1761,6 +1786,10 @@ void display(void)
 
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 	glBindVertexArray( vao[WHEEL] );
+	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
+
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 
 	/* inner wheel */
@@ -1775,6 +1804,9 @@ void display(void)
 	frontRight = frontRight * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRight);
 	glBindVertexArray( vao[HUBCAP] );
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw tire tread - FRONT RIGHT */
@@ -1796,6 +1828,9 @@ void display(void)
 	backLeft = backLeft * RotateY(90);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
 	glBindVertexArray( vao[WHEEL] );
+	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 	/* inner wheel */
 	inner = backLeft;
@@ -1808,6 +1843,9 @@ void display(void)
 	backLeft = backLeft * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeft);
 	glBindVertexArray( vao[HUBCAP] );
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, 3 ); 
 
 	/* draw tire tread - BACK LEFT */
@@ -1828,6 +1866,9 @@ void display(void)
 	backRight = backRight * RotateY(270);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 	glBindVertexArray( vao[WHEEL] );
+	glUniform3fv(Ka, 1, vec3(1.0f,1.0f,1.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLE_FAN, 0, circlevertcount );    // draw the circle
 	/* inner wheel */
 	inner = backRight;
@@ -1840,6 +1881,9 @@ void display(void)
 	backRight = backRight * Translate(0.0,0.0,0.1);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backRight);
 	glBindVertexArray( vao[HUBCAP] );
+	glUniform3fv(Ka, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Ks, 1, vec3(0.0f,0.0f,0.0f));
+	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glDrawArrays( GL_TRIANGLES, 0, 3 );   
 
 	/* draw tire tread - BACK RIGHT */
