@@ -65,10 +65,13 @@ enum LIGHTS
 	NUMBER_OF_LIGHTS
 };
 
-vec4 lightPosition[NUMBER_OF_LIGHTS];
-vec4 lightDirection[NUMBER_OF_LIGHTS];
-vec4 lightIntensity[NUMBER_OF_LIGHTS]; // i.e. - light color
-float cutoffAngle[NUMBER_OF_LIGHTS]; // RADIANS!!
+vec4 lightPositions[NUMBER_OF_LIGHTS];
+vec4 lightDirections[NUMBER_OF_LIGHTS];
+vec4 lightIntensities[NUMBER_OF_LIGHTS]; // i.e. - light color
+float cutoffAngles[NUMBER_OF_LIGHTS]; // RADIANS!!
+float lightExponents[NUMBER_OF_LIGHTS];
+vec4 lightColors[NUMBER_OF_LIGHTS];
+vec4 ambientLights[NUMBER_OF_LIGHTS];
 
 //and we'll need pointers to our shader variables
 GLuint model_view;
@@ -81,6 +84,9 @@ GLuint vAmbientDiffuseColor;
 GLuint vSpecularColor;
 GLuint vSpecularExponent;
 GLuint vNormal;
+GLuint vAmbient;
+GLuint vDiffuse;
+GLuint vSpecular;
 GLuint ambient_light;
 
 GLuint light_position;
@@ -89,6 +95,21 @@ GLuint light_direction;
 GLuint light_intensity;
 GLuint light_exponent; 
 GLuint light_cutoff; 
+
+GLuint rightHeadlight_position;
+GLuint rightHeadlight_color;
+GLuint rightHeadlight_direction;
+GLuint rightHeadlight_intensity;
+GLuint rightHeadlight_exponent; 
+GLuint rightHeadlight_cutoff; 
+
+GLuint policeLight1_position;
+GLuint policeLight1_direction;
+GLuint policeLight1_intensity;
+GLuint policeLight1_exponent;
+GLuint policeLight1_cutoff; 
+GLuint policeLight1_color;
+
 
 GLuint Kd;
 GLuint Ks;
@@ -417,9 +438,17 @@ void generateStage() {
 vec4 carVerts[36];
 vec4 carColors[36];
 vec3 carNormals[36];
+vec3 carMaterialAmbient[36];
+vec3 carMaterialDiffuse[36];
+vec3 carMaterialSpecular[36];
 void generateCar() {
 	for(int i=0; i<6; i++){
 		carColors[i] = vec4(1.0, 1.0, 1.0, 1.0); //front
+
+		carMaterialSpecular[i] = carMaterialDiffuse[i] = carMaterialAmbient[i] = 
+			vec3(carColors[i].x,carColors[i].y,carColors[i].z);
+		//carMaterialDiffuse[i] =	carColors[i].xyz;
+		//carMaterialSpecular[i] = carColors[i].xyz;
 		carNormals[i] = vec3(0.0,0.0,1.0);
 	}
 	carVerts[0] = vec4(CAR_WIDTH/2,		-(CAR_HEIGHT/2),	0.0f, 1.0);
@@ -1041,6 +1070,23 @@ void setupShader(GLuint prog){
 	light_cutoff = glGetUniformLocation(prog, "light_cutoff");
 	light_color = glGetUniformLocation(prog, "light_color");
 	ambient_light = glGetUniformLocation(prog, "ambient_light");
+
+	
+	rightHeadlight_position = glGetUniformLocation(prog, "rightHeadlight_position");
+	rightHeadlight_direction = glGetUniformLocation(prog, "rightHeadlight_direction");
+	rightHeadlight_intensity = glGetUniformLocation(prog, "rightHeadlight_intensity");
+	rightHeadlight_exponent = glGetUniformLocation(prog, "rightHeadlight_exponent");
+	rightHeadlight_cutoff = glGetUniformLocation(prog, "rightHeadlight_cutoff");
+	rightHeadlight_color = glGetUniformLocation(prog, "rightHeadlight_color");
+
+	policeLight1_position = glGetUniformLocation(prog, "policeLight1_position");
+	policeLight1_direction = glGetUniformLocation(prog, "policeLight1_direction");
+	policeLight1_intensity = glGetUniformLocation(prog, "policeLight1_intensity");
+	policeLight1_exponent = glGetUniformLocation(prog, "policeLight1_exponent");
+	policeLight1_cutoff = glGetUniformLocation(prog, "policeLight1_cutoff");
+	policeLight1_color = glGetUniformLocation(prog, "policeLight1_color");
+
+
 	//Uniforms - Kd, Ks, Ka, Shininess
 	Kd = glGetUniformLocation(prog, "Kd");
 	Ks = glGetUniformLocation(prog, "Ks");
@@ -1192,6 +1238,13 @@ void init() {
 	glBufferData( GL_ARRAY_BUFFER, sizeof(carNormals), carNormals, GL_STATIC_DRAW );
 	vNormal = glGetAttribLocation(program, "vNormal");
 	glEnableVertexAttribArray(vNormal);
+	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//material attributes for each vertex
+	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_MATERIAL_AMBIENT] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(carMaterialAmbient), carMaterialAmbient, GL_STATIC_DRAW );
+	vNormal = glGetAttribLocation(program, "vAmbient");
+	glEnableVertexAttribArray(vAmbient);
 	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//grab pointers for our modelview and perspecive uniform matrices
@@ -1393,6 +1446,7 @@ void init() {
 	glEnable(GL_DEPTH_TEST);
 }
 
+float policeLightRotation = 0.0;
 void display(void)
 {
 	/*clear all pixels*/
@@ -1405,6 +1459,10 @@ void display(void)
 	mat4 frontWheelsMatrix;
 	mat4 allWheelsMatrix;
 	mat4 inner;
+
+	vec4 light_direction_vector; 
+	vec4 light_direction_vector_mv;
+	vec4 light_position_headlight;
 
 	glVertexAttrib4fv(vAmbientDiffuseColor, vec4(.3, .3, .3, 1));
 	glVertexAttrib4fv(vSpecularColor, vec4(1.0f,1.0f,1.0f,1.0f));
@@ -1426,8 +1484,13 @@ void display(void)
 	// glUniform1(loc,val)
 	glUniform1f(Shininess, 180.0f);
 
-	glUniform4fv(light_color, 1, vec4(.4,.4,.4,1));
+	glUniform4fv(light_color, 1, vec4(1.0,1.0,1.0,1));
+	//spotlight
+	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
+	glUniform1f(light_exponent, 30.0f);
+	glUniform1f(light_cutoff, 15.0f);
 	glUniform4fv(ambient_light, 1, vec4(0.2, 0.2, 0.2, 5));
+	glUniform4fv(rightHeadlight_color, 1, vec4(.4,.4,.4,1));
 
 
 	switch (current_state)
@@ -1466,6 +1529,11 @@ void display(void)
 
 
 	/* CORNER CUBES */
+	// glUniform3fv(location, count, value)
+	glUniform3fv(Ka, 1, vec3(1.0,0.2,0.0));
+	glUniform3fv(Ks, 1, vec3(1.0f,0.2f,0.0));
+	glUniform3fv(Kd, 1, vec3(1.0,0.2,0.0));
+
 	/* cube 1 */
 	mat4 cubeView = cameraMatrix;
 	cubeView = cubeView * Translate(48, 1, 48);
@@ -1525,7 +1593,9 @@ void display(void)
 
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, wholeCarMatrix);
 	//glUniformMatrix4fv(projection, 1, GL_TRUE, p);
-
+	glUniform3fv(Ka, 1, vec3(0.0,0.0,0.0));
+	glUniform3fv(Ks, 1, vec3(0.0,0.0,0.0));
+	glUniform3fv(Kd, 1, vec3(0.0,0.0,0.0));
 	glBindVertexArray( vao[CAR] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the car
 
@@ -1534,8 +1604,37 @@ void display(void)
 
 	/* police light */
 	policeLightMatrix = wholeCarMatrix;
+	mat4 policeLightRotationMatrix = policeLightMatrix;
+	
+	if (policeLightRotation < 360) policeLightRotation+=5.0;
+	else policeLightRotation = 0;
+	policeLightRotationMatrix = policeLightRotationMatrix * RotateY(policeLightRotation);
 	policeLightMatrix = policeLightMatrix * Translate(0.6, 1.4, -4.7);
+	policeLightRotationMatrix = policeLightRotationMatrix * policeLightMatrix;
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, policeLightMatrix);
+
+	// light direction = negative z direction, slight negative y
+	light_direction_vector = vec4(0.0, -0.8, -1.0f, 0.0);
+	
+	
+	//light_direction_vector = light_direction_vector * RotateY(1.0);
+	// headlightMatrix applied to light_direction_vector
+	light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
+	// set light_position to the origin of the headlightMatrix
+	vec4 light_position_point = vec4(0.0,0.0,0.0,1.0);
+	// get the light position translated - headlightMatrix coordinates
+	light_position_point =	policeLightMatrix * light_position_point;
+	
+	
+	glUniform4fv(policeLight1_position,		1,	light_position_point);
+	glUniform3fv(policeLight1_direction,	1,	light_direction_vector_mv);
+	glUniform4fv(policeLight1_color,		1,	vec4(1.0,1.0,1.0,1));
+	glUniform3fv(policeLight1_intensity,	1,	vec3(1.0,0.0,0.0));
+	
+
+
+
+
 	glBindVertexArray( vao[POLICE_LIGHT] );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );    // draw the police light
 	/* police light 2*/
@@ -1553,13 +1652,14 @@ void display(void)
 	headlightMatrix = wholeCarMatrix * Translate(0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	// light direction = negative z direction, slight negative y
-	vec4 light_direction_vector = vec4(0.0, -0.12, 0.5f, 0.0);
+	light_direction_vector = vec4(-0.05, -0.19, 0.5f, 0.0);
 	// headlightMatrix applied to light_direction_vector
-	vec4 light_direction_vector_mv = headlightMatrix * light_direction_vector;
+	light_direction_vector_mv = headlightMatrix * light_direction_vector;
 	// set light_position to the origin of the headlightMatrix
-	vec4 light_position_headlight = vec4(0.0,0.0,0.0,1.0);
+	light_position_headlight = vec4(0.0,0.0,0.0,1.0);
 	// get the light position translated - headlightMatrix coordinates
 	light_position_headlight =	headlightMatrix * light_position_headlight;
+	/*
 	printf("light_position_headlight: %f,%f,%f,%f\n", 
 		light_position_headlight.x,
 		light_position_headlight.y,
@@ -1570,7 +1670,8 @@ void display(void)
 		light_direction_vector_mv.y,
 		light_direction_vector_mv.z,
 		light_direction_vector_mv.w);
-	
+		*/
+	lightDirections[HEADLIGHT_LEFT] = light_position_headlight;
 	glUniform4fv(light_position, 1, light_position_headlight);
 	glUniform3fv(light_direction, 1, light_direction_vector_mv);
 	glBindVertexArray(vao[HEADLIGHT]);
@@ -1582,26 +1683,16 @@ void display(void)
 	headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(0.0, -0.12, 0.5f, 0.0);
+	light_direction_vector = vec4(0.05, -0.19, 0.5f, 0.0);
 	// headlightMatrix applied to light_direction_vector
 	light_direction_vector_mv = headlightMatrix * light_direction_vector;
 	// set light_position to the origin of the headlightMatrix
 	light_position_headlight = vec4(0.0,0.0,0.0,1.0);
 	// get the light position translated - headlightMatrix coordinates
 	light_position_headlight =	headlightMatrix * light_position_headlight;
-	printf("light_position_headlight: %f,%f,%f,%f\n", 
-		light_position_headlight.x,
-		light_position_headlight.y,
-		light_position_headlight.z,
-		light_position_headlight.w);
-	printf("light_direction_headlight: %f,%f,%f,%f\n", 
-		light_direction_vector_mv.x,
-		light_direction_vector_mv.y,
-		light_direction_vector_mv.z,
-		light_direction_vector_mv.w);
 	
-	glUniform4fv(light_position, 1, light_position_headlight);
-	glUniform3fv(light_direction, 1, light_direction_vector_mv);
+	glUniform4fv(rightHeadlight_position, 1, light_position_headlight);
+	glUniform3fv(rightHeadlight_direction, 1, light_direction_vector_mv);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	glBindVertexArray( vao[HEADLIGHT] );
 	glDrawArrays( GL_TRIANGLE_FAN, 0, headlightvertcount );    // draw the headlights
@@ -1661,7 +1752,7 @@ void display(void)
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
 
-	/**************************************************************************************** draw a wheel - FRONT RIGHT */
+#pragma region draw a wheel - FRONT RIGHT
 	//allWheelsMatrix = wholeCarMatrix;
 	mat4 frontRight = allWheelsMatrix;
 	frontRight = frontRight * Translate(-2.0, -1.0, -0.7);
@@ -1695,6 +1786,8 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, frontRightTread);
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
+#pragma endregion
+#pragma region draw a wheel - BACK LEFT
 
 	/**************************************************************************************** draw a wheel - BACK LEFT */
 	mat4 backLeft = allWheelsMatrix;
@@ -1726,7 +1819,8 @@ void display(void)
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, backLeftTread);
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
-
+#pragma endregion
+#pragma region draw a wheel - BACK RIGHT
 	/**************************************************************************************** draw a wheel - BACK RIGHT */
 	mat4 backRight = allWheelsMatrix;
 	backRight = backRight * Translate(-2.0, -1.0, 0.7 - (CAR_LENGTH));
@@ -1758,8 +1852,8 @@ void display(void)
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glBindVertexArray( vao[TIRETREAD] );
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, tireTreadvertcount ); 
-
-	/* draw stage */
+#pragma endregion
+#pragma region	draw stage
 	mv = cameraMatrix;
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
 	// glUniform3fv(location, count, value)
@@ -1767,7 +1861,8 @@ void display(void)
 	glUniform3fv(Ks, 1, vec3(0.2f,0.2f,0.2f));
 	glUniform3fv(Kd, 1, vec3(0.1f,0.1f,0.1f));
 	glBindVertexArray( vao[STAGE] );
-	glDrawArrays( GL_TRIANGLES, 0, 6 );    // draw the sphere
+	glDrawArrays( GL_TRIANGLES, 0, 6 );
+#pragma endregion
 
 	mv = cameraMatrix;
 

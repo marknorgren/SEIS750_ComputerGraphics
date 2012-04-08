@@ -3,9 +3,9 @@
 in vec4 vPosition;
 in vec3 vNormal;
 in vec4 vColor;
-in vec4 vAmbient;
-in vec4 vDiffuse;
-in vec4 vSpecular;
+in vec3 vAmbient;
+in vec3 vDiffuse;
+in vec3 vSpecular;
 in vec4 vShininess;
 
 
@@ -16,7 +16,9 @@ in float vSpecularExponent;
 
 
 out vec4 color;
-out vec4 ambient;
+out vec3 fAmbient;
+out vec3 fDiffuse;
+out vec3 fSpecular;
 out vec3 normal;
 out vec3 position;
 out vec3 vN;
@@ -48,5 +50,9 @@ main()
 	//position = veyepos.xyz;
 	position = vec3(model_view * vPosition);
 	color = vColor;//*ambient;//amb + diff + spec;
+
+	fAmbient = vAmbient;
+	fDiffuse = vDiffuse;
+	fSpecular = vSpecular;
 	
 }
