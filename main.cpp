@@ -1,8 +1,8 @@
 /*
 * SEIS750 Computer Graphics
-* Assignment 2 
+* Assignment 4 
 * Mark Norgren
-* March 2012
+* Spring 2012 (April)
 **/
 
 #include <GL/Angel.h>
@@ -1514,8 +1514,8 @@ void display(void)
 	glUniform4fv(light_color, 1, vec4(1.0,1.0,1.0,1));
 	//spotlight
 	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
-	glUniform1f(light_exponent, 30.0f);
-	glUniform1f(light_cutoff, 15.0f);
+	glUniform1f(light_exponent, 99.0f);
+	glUniform1f(light_cutoff, 25.0f);
 	glUniform4fv(ambient_light, 1, vec4(0.1, 0.1, 0.1, 1.0));
 	glUniform4fv(scene_light_color, 1, vec4(0.3,0.3,0.3,1.0));
 	glUniform4fv(rightHeadlight_color, 1, vec4(1.0,1.0,1.0,1));
@@ -1719,7 +1719,7 @@ void display(void)
 	headlightMatrix = wholeCarMatrix * Translate(0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(-0.05, -0.2, 0.5f, 0.0);
+	light_direction_vector = vec4(0.0, -0.2, 1.0f, 0.0);
 	// headlightMatrix applied to light_direction_vector
 	light_direction_vector_mv = headlightMatrix * light_direction_vector;
 	// set light_position to the origin of the headlightMatrix
@@ -1748,7 +1748,7 @@ void display(void)
 	headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(0.05, -0.2, 0.5f, 0.0);
+	light_direction_vector = vec4(0.0, 0.0, 0.2, 0.0);
 	// headlightMatrix applied to light_direction_vector
 	light_direction_vector_mv = headlightMatrix * light_direction_vector;
 	// set light_position to the origin of the headlightMatrix

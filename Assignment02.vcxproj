@@ -64,7 +64,7 @@
   <ItemGroup>
     <ClCompile Include="InitShader.cpp" />
     <ClCompile Include="matrix_stack.cpp" />
-    <ClCompile Include="assignment2.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MRKCheckError.h" />

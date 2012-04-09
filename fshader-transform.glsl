@@ -83,18 +83,8 @@ vec3 spotlight_function(spotLightStruct thisSpotlight)
 {
 	
 
-	vec3 E = normalize(-position.xyz);
-	vec3 N = normalize(vN);
-	vec3 L = normalize( thisSpotlight.position.xyz - position.xyz);
-	vec3 H = normalize(L+E);
-	vec4 amb = vec4((Kd + Ka),1.0) * ambient_light;
-	vec4 diff = max(dot(L,N), 0.0) *  vec4((Kd + Ka),1.0) * scene_light_color;
-	vec4 spec = pow( max (dot(N,H), 0.0), Shininess) *  vec4(Ks,1.0) * scene_light_color  ;
-	if(dot(L,N) < 0.0){
-		spec = vec4(0,0,0,1);
-	}
 	
-
+	
 	vec3 s = normalize(vec3(thisSpotlight.position) - position);
 	vec3 spotDir = normalize(thisSpotlight.direction);
 	//SAME - float angle = acos(dot(-s,spotDir));
@@ -122,6 +112,19 @@ vec3 spotlight_function(spotLightStruct thisSpotlight)
 
 void main()
 {
+
+	vec3 E = normalize(-position.xyz);
+	vec3 N = normalize(vN);
+	vec3 L = normalize( light_position.xyz - position.xyz);
+	vec3 H = normalize(L+E);
+	vec4 amb = vec4((Kd + Ka),1.0) * ambient_light;
+	vec4 diff = max(dot(L,N), 0.0) *  vec4((Kd + Ka),1.0) * scene_light_color;
+	// NOT USED?
+	vec4 spec = pow( max (dot(N,H), 0.0), Shininess) *  vec4(Ks,1.0) * scene_light_color  ;
+	if(dot(L,N) < 0.0){
+		spec = vec4(0,0,0,1);
+	}
+
 	// test for normal values
 	// same normal values should have same color value
 	//fColor = vec4(normal, 1.0);//color * ambient;
@@ -149,7 +152,6 @@ void main()
 	currentSpotlight.direction =	policeLight1_direction;
 	currentSpotlight.color =		policeLight1_color;
 	currentSpotlight.intensity =	policeLight1_intensity;
-	//currentSpotlight.exponent =	policeLight1_exponent;
 
 	fColor = fColor + vec4(spotlight_function(currentSpotlight), 1.0);
 
@@ -159,5 +161,5 @@ void main()
 	currentSpotlight.intensity =	policeLight2_intensity;
 	//currentSpotlight.exponent =	policeLight2_exponent;
 
-	fColor = fColor + vec4(spotlight_function(currentSpotlight), 1.0);
+	fColor = fColor + vec4(spotlight_function(currentSpotlight), 1.0) + spec + diff;
 }
