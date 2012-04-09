@@ -127,6 +127,7 @@ void main()
 	//fColor = vec4(normal, 1.0);//color * ambient;
 	//fColor = amb + diff + spec;
 	//SPOTLIGHT
+	// first headlight
 	spotLightStruct currentSpotlight;
 	currentSpotlight.position = light_position;
 	currentSpotlight.direction = light_direction;
@@ -135,7 +136,7 @@ void main()
 	currentSpotlight.color = light_color;
 	currentSpotlight.cutoff = light_cutoff;
 	currentSpotlight.exponent = light_exponent;
-
+	// second headlight
 	fColor = vec4(spotlight_function(currentSpotlight), 1.0);
 	currentSpotlight.position = rightHeadlight_position;
 	currentSpotlight.direction = rightHeadlight_direction;
