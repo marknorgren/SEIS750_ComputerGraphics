@@ -16,19 +16,15 @@ in float vSpecularExponent;
 
 
 out vec4 color;
-out vec3 fAmbient;
-out vec3 fDiffuse;
-out vec3 fSpecular;
+
 out vec3 normal;
 out vec3 position;
 out vec3 vN;
 
-uniform vec3 AmbientProduct, DiffiuseProduct, SpecularProduct;
 uniform mat4 model_view;
 uniform mat4 projection;
 uniform mat3 NormalMatrix;
-uniform vec4 light_position;
-uniform vec4 light_color;
+
 uniform vec4 ambient_light;
 uniform float Shininess;
 
@@ -37,9 +33,6 @@ main()
 {
 	vec4 vNormal = vec4(vNormal, 0.0);
     vec4 veyepos = model_view*vPosition;
-	vec3 L = normalize( light_position.xyz - veyepos.xyz);
-	vec3 E = normalize(-veyepos.xyz);
-	vec3 H = normalize(L+E);
 
 	vN = normalize(model_view * vNormal).xyz;
 	normal = vN;
@@ -49,10 +42,6 @@ main()
 	gl_Position = projection * veyepos;
 	//position = veyepos.xyz;
 	position = vec3(model_view * vPosition);
+	// not used
 	color = vColor;//*ambient;//amb + diff + spec;
-
-	fAmbient = vAmbient;
-	fDiffuse = vDiffuse;
-	fSpecular = vSpecular;
-	
 }
