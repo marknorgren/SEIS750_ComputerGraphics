@@ -2,7 +2,16 @@
 * SEIS750 Computer Graphics
 * Assignment 4 
 * Mark Norgren
-* March 2012
+* Spring 2012 (April)
+*
+* Resources:
+*	SEIS 750 Spring 2012 - University of St Thomas - Gosset - Course Notes
+*	Interactive Computer Graphics - 6th Edition - Angel
+*	OpenGL SuperBible - 5th Edition - Haemel
+*	OpenGL 4.0 Shading Language Cookbook - Wolff
+*	OpenGL Programming Guide - Shreiner
+*
+*
 **/
 
 #include <GL/Angel.h>
