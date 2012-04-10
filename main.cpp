@@ -1514,7 +1514,7 @@ void display(void)
 	glUniform4fv(light_color, 1, vec4(1.0,1.0,1.0,1));
 	//spotlight
 	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
-	glUniform1f(light_exponent, 99.0f);
+	glUniform1f(light_exponent, 15.0f);
 	glUniform1f(light_cutoff, 25.0f);
 	glUniform4fv(ambient_light, 1, vec4(0.1, 0.1, 0.1, 1.0));
 	glUniform4fv(scene_light_color, 1, vec4(0.3,0.3,0.3,1.0));
