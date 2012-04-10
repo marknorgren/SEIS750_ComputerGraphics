@@ -85,7 +85,7 @@ vec3 spotlight_function(spotLightStruct thisSpotlight)
 
 	vec3 E = normalize(-position.xyz);
 	vec3 N = normalize(vN);
-	vec3 L = normalize( thisSpotlight.position.xyz - position.xyz);
+	vec3 L = normalize( normalize(thisSpotlight.position.xyz) - position.xyz);
 	vec3 H = normalize(L+E);
 	vec4 amb = vec4((Kd + Ka),1.0) * ambient_light;
 	vec4 diff = max(dot(L,N), 0.0) *  vec4((Kd + Ka),1.0) * scene_light_color;
@@ -100,7 +100,7 @@ vec3 spotlight_function(spotLightStruct thisSpotlight)
 	//SAME - float angle = acos(dot(-s,spotDir));
 	float angle = acos( dot(-s, spotDir));
 	float cutoff = radians( clamp(light_cutoff, 0.0, 90.0) );
-	vec3 spot_ambient = light_intensity * Ka;
+	vec3 spot_ambient = light_intensity * amb.xyz;
 
 	if ( angle < cutoff) {
 		float spotFactor = pow( dot(-s, spotDir), thisSpotlight.exponent);
@@ -109,13 +109,13 @@ vec3 spotlight_function(spotLightStruct thisSpotlight)
 
 		return spot_ambient + spotFactor * thisSpotlight.intensity * 
 			(
-				Kd * max( dot(s, normal),0.0) +
-				Ks * pow( max(dot(h,normal),0.0), Shininess)
+				diff.xyz * max( dot(s, normal),0.0) +
+				spec.xyz * pow( max(dot(h,normal),0.0), Shininess)
 			);
 	}
 	else
 	{
-		vec3 spot_ambient = ambient_light.xyz * Ka;
+		vec3 spot_ambient = ambient_light.xyz * amb.xyz;
 		return spot_ambient;
 	}
 }
@@ -135,29 +135,26 @@ void main()
 	currentSpotlight.exponent = light_exponent;
 	currentSpotlight.color = light_color;
 	currentSpotlight.cutoff = light_cutoff;
-	currentSpotlight.exponent = light_exponent;
-	// second headlight
 	fColor = vec4(spotlight_function(currentSpotlight), 1.0);
+
+	// second headlight
 	currentSpotlight.position = rightHeadlight_position;
 	currentSpotlight.direction = rightHeadlight_direction;
 	//currentSpotlight.intensity = rightHeadlight_intensity;
-	//currentSpotlight.exponent = rightHeadlight_exponent;
-
+	//currentSpotlight.exponent = rightHeadlight_exponent;  //using same setting
 	fColor = fColor + vec4(spotlight_function(currentSpotlight), 1.0);
 
 	currentSpotlight.position =		policeLight1_position;
 	currentSpotlight.direction =	policeLight1_direction;
 	currentSpotlight.color =		policeLight1_color;
 	currentSpotlight.intensity =	policeLight1_intensity;
-	//currentSpotlight.exponent =	policeLight1_exponent;
-
+	//currentSpotlight.exponent =	policeLight1_exponent; //using same setting
 	fColor = fColor + vec4(spotlight_function(currentSpotlight), 1.0);
 
 	currentSpotlight.position =		policeLight2_position;
 	currentSpotlight.direction =	policeLight2_direction;
 	currentSpotlight.color =		policeLight2_color;
 	currentSpotlight.intensity =	policeLight2_intensity;
-	//currentSpotlight.exponent =	policeLight2_exponent;
-
+	//currentSpotlight.exponent =	policeLight2_exponent;  //using same setting
 	fColor = fColor + vec4(spotlight_function(currentSpotlight), 1.0);
 }

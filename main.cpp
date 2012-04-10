@@ -1514,9 +1514,9 @@ void display(void)
 	glUniform4fv(light_color, 1, vec4(1.0,1.0,1.0,1));
 	//spotlight
 	glUniform3fv(light_intensity, 1, vec3(0.9f,0.9f,0.9f));
-	glUniform1f(light_exponent, 30.0f);
-	glUniform1f(light_cutoff, 15.0f);
-	glUniform4fv(ambient_light, 1, vec4(0.1, 0.1, 0.1, 1.0));
+	glUniform1f(light_exponent, 10.0f);
+	glUniform1f(light_cutoff, 25.0f);
+	glUniform4fv(ambient_light, 1, vec4(0.3, 0.3, 0.3, 1.0));
 	glUniform4fv(scene_light_color, 1, vec4(0.3,0.3,0.3,1.0));
 	glUniform4fv(rightHeadlight_color, 1, vec4(1.0,1.0,1.0,1));
 
@@ -1647,7 +1647,7 @@ void display(void)
 	if (policeLightsOn)
 	{
 		// light direction = negative z direction, slight negative y
-		light_direction_vector = vec4(1.5, -0.8, 0.0f, 0.0);
+		light_direction_vector = vec4(1.0, -0.1, 0.0f, 0.0);
 		// headlightMatrix applied to light_direction_vector
 		light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
 		// set light_position to the origin of the headlightMatrix
@@ -1688,7 +1688,7 @@ void display(void)
 	if (policeLightsOn)
 	{
 		// light direction = negative z direction, slight negative y
-		light_direction_vector = vec4(-1.5, -0.8, 0.0f, 0.0);
+		light_direction_vector = vec4(-1.0, -0.1, 0.0f, 0.0);
 		// headlightMatrix applied to light_direction_vector
 		light_direction_vector_mv = policeLightRotationMatrix * light_direction_vector;
 		// set light_position to the origin of the headlightMatrix
@@ -1719,7 +1719,7 @@ void display(void)
 	headlightMatrix = wholeCarMatrix * Translate(0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(-0.05, -0.2, 0.5f, 0.0);
+	light_direction_vector = vec4(-0.05, -0.8, 0.5f, 0.0);
 	// headlightMatrix applied to light_direction_vector
 	light_direction_vector_mv = headlightMatrix * light_direction_vector;
 	// set light_position to the origin of the headlightMatrix
@@ -1748,7 +1748,7 @@ void display(void)
 	headlightMatrix = wholeCarMatrix * Translate(-0.7,0.4,0.01);
 	glUniformMatrix4fv(model_view, 1, GL_TRUE, headlightMatrix);
 	// light direction = negative z direction, slight negative y
-	light_direction_vector = vec4(0.05, -0.2, 0.5f, 0.0);
+	light_direction_vector = vec4(0.00, -0.8, 0.5f, 0.0);
 	// headlightMatrix applied to light_direction_vector
 	light_direction_vector_mv = headlightMatrix * light_direction_vector;
 	// set light_position to the origin of the headlightMatrix
