@@ -1189,7 +1189,7 @@ void init() {
 	//vertex normals
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_NORMALS] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(cubeNormals), cubeNormals, GL_STATIC_DRAW );
-	vColor = glGetAttribLocation(program, "vNormal");
+	vNormal = glGetAttribLocation(program, "vNormal");
 	glEnableVertexAttribArray(vNormal);
 	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -1283,9 +1283,9 @@ void init() {
 	//material attributes for each vertex
 	glBindBuffer( GL_ARRAY_BUFFER, vbo[CUBE_MATERIAL_AMBIENT] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(carMaterialAmbient), carMaterialAmbient, GL_STATIC_DRAW );
-	vNormal = glGetAttribLocation(program, "vAmbient");
+	vAmbient = glGetAttribLocation(program, "vAmbient");
 	glEnableVertexAttribArray(vAmbient);
-	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(vAmbient, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//grab pointers for our modelview and perspecive uniform matrices
 	model_view = glGetUniformLocation(program, "model_view");
